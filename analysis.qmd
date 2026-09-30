@@ -625,7 +625,7 @@ maplibre(style = carto_style("positron"), bounds = wi_state) |>
   add_line_layer(id = "DNR watersheds", source = watersheds, line_color = "#6da7ec", line_width = 0.5, visibility = "none") |>
   add_sites("Groundwater", "Groundwater") |>
   add_sites("Surface water", "Surface water") |>
-  add_categorical_legend(legend_title = "Site status", values = status_vals, colors = status_cols, circular_patches = TRUE) |>
+  add_categorical_legend(legend_title = "Site status", values = status_vals, colors = status_cols, patch_shape = "circle") |>
   add_layers_control(position = "top-left", layers = c("Surface water", "Groundwater", "Counties", "DNR watersheds")) |>
   add_navigation_control() |>
   add_fullscreen_control()

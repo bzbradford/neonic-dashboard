@@ -177,14 +177,57 @@ Render: `quarto::quarto_render("analysis.qmd")`.
 
 WAV Dashboard architecture, with SPEC §6 content and §7 styling.
 
-- **Framework:** `bslib::page_navbar` (Introduction / Explore / About) with a UW red navbar, a partner-link pre-header, a footer with attribution and last-updated date, and Red Hat Display/Text fonts. Design tokens from SPEC §7 go in `bs_theme()` + `www/styles.css`.
-- **Map:** `mapgl` (MapLibre + Positron, same as the Quarto site) with `maplibre_proxy` for layer and filter updates. Layers: county choropleth, watershed choropleth, site circles, and a hatched gray "no data" fill. `leaflet` is the fallback if mapgl's Shiny interactivity comes up short.
-- **Controls (Explore):** water type (tabs), analyte (imidacloprid / clothianidin / thiamethoxam / total), geography mode (county / DNR watershed / sites), map metric (detection % / median of detections / % exceeding benchmark), benchmark selector (disabled for total), GW well-use filter.
-- **Right panel:** selection summary (statewide / county / watershed / site); plotly time series (log y, NDs as open markers at the DL, benchmark `hline`s); detection-by-analyte bars; exceedance summary table; site results table (DT) with CSV download.
-- **Selection model:** click on map → `rv$selection`; a "Clear selection" chip returns to statewide. URL query params (`?type=&analyte=&geo=&sel=`) are restored on load, following the WAV `set_page_url()` pattern.
-- **Modules (`src/`):** `1.1__controls.R`, `1.2__map.R`, `2.1__selection_summary.R`, `2.2__timeseries.R`, `2.3__analyte_bars.R`, `2.4__exceedances.R`, `3.1__intro.R`, `3.2__about.R`.
-- **Performance:** everything aggregatable is precomputed in `prep_data.R`; the app only filters and summarizes small tables.
-- **Deploy:** `rsconnect` to `connect.doit.wisc.edu`, same as the WAV Dashboard. Optionally add `renv` inside `app/`.
+**Status: first working version (2026-09-30).**
+- Rebuild with `source("R/build.R")`: data prep, report render, and copying the report to `app/www/`.
+- Run with `shiny::runApp("app")`. `global.R` loads in about 5 s.
+
+**Built:**
+- **Navigation:** `bslib::page_navbar` with **About | Summary | Explore** (per Ben), a UW red navbar, Red Hat fonts and a Partners menu.
+  - *About* (landing page): framing copy, including groundwater-fed streams; stat cards by water type; how to read the data; benchmark table and sources; methods; footer.
+  - *Summary*: embeds `www/analysis.html` in an iframe, created only when the tab is first opened, so the ~17 MB report isn't downloaded otherwise.
+  - *Explore*: sidebar controls, map, and selection panel.
+- **Explore controls:**
+  - Water type: Surface / Groundwater / **Both**.
+  - Analyte: the three featured analytes, or any neonicotinoid.
+  - Map areas: counties / DNR watersheds / sites only.
+  - Area metric: detection frequency, % sites with detections, median detection, or % samples exceeding benchmark.
+  - Benchmark: primary (depends on water type), or any single benchmark. It drives both the exceedance metric and the site colors.
+  - Year range, with a one-click "2019 onward" option for current detection limits.
+  - Groundwater well type: all / private / monitoring.
+  - Show sites on top of areas.
+- **Map:** `mapgl`/MapLibre on Carto Positron.
+  - The initial render uses the current inputs. Later changes swap data via `set_source()`, so zoom and pan are kept.
+  - Each geography has one GeoJSON source shared by its fill, outline, no-data and selection layers.
+  - No-data areas: gray fill with a dashed outline (SPEC §7). A hatch pattern was dropped because `mapgl` loads images asynchronously, after the layers are drawn.
+  - Sites are colored Exceeded / Detected / Not detected for the current analyte and benchmark. Surface water sites are larger, with a dark outline.
+  - Tooltips are shown on hover; site popups list the full analyte screen.
+- **Selection panel:**
+  - The selection comes from a map click on a county, watershed or site, or a click on a sites-table row (which also flies the map to that site). Clicking the active selection again, or the "Statewide" button, clears it.
+  - Stat tiles: samples and sites; % detected; median and max detection; % exceeding the benchmark, with the indeterminate count.
+  - Tabs:
+    - *Over time*: plotly scatter, log scale; non-detects as open markers at the DL; benchmark lines. "Any neonicotinoid" shows all three analytes.
+    - *By year*: annual detection frequency.
+    - *Sites / Results*: sites in the area, or one site's full results for all six analytes. Includes a CSV download.
+- **Both water types:**
+  - Charts stack surface water and groundwater as separate panels, never pooled.
+  - Area colors are **pooled** across both types (a necessary exception to SPEC §5.3), with a sidebar note. Area tooltips break results out by water type.
+- **URL state:** `?water=&analyte=&geo=&metric=&bm=&sel=county:Dane` is written on every change and restored on load. Any query string opens the Explore tab directly.
+- **Files:**
+  - `global.R`: data, choices, and precomputed tables (`app_results`, `app_status`, `app_sites`, headline stats).
+  - `src/1.1__about.R`, `src/2.1__summary.R`, `src/3.1__explore.R` (module).
+  - `src/3.2__map_data.R`: filters, area stats, color scales, layer sources.
+  - `src/3.3__explore_charts.R`: plotly charts and reactable tables.
+  - `functions.R` gained `build_sample_status()` (benchmark status per sample × analyte × benchmark, with a "primary" pseudo-benchmark and a "Total" pseudo-analyte).
+- **Testing:**
+  - `shiny::testServer()` covers the Explore module: filters, clicks, URL-free paths, the download, empty selections and "Both".
+  - Headless Chrome screenshots at 1440×900 and phone width show no console errors.
+
+**Still to do:**
+- Deploy with `rsconnect` to `connect.doit.wisc.edu` (optionally with `renv` in `app/`).
+- Partner logos and final links: currently organization homepages in the Partners menu.
+- Copy review with Ben.
+- An accessibility pass (keyboard focus on the map, color-blind check of the site status colors).
+- Check load time on Connect.
 
 ---
 

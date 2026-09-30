@@ -1,0 +1,189 @@
+/*--- Definitions ---*/
+
+:root {
+  --color-uw-red: #c5050c;
+  --color-uw-red-dark: #9b0000;
+  --color-page-bg: #f5f7fa;
+  --color-text: #1f2328;
+  --color-muted: #6b6a66;
+  --color-footer: #3a3a3a;
+  --color-footer-text: #d7d9db;
+}
+
+/*--- Layout ---*/
+
+body {
+  background: var(--color-page-bg);
+}
+
+.navbar-title {
+  font-family: "Red Hat Display", sans-serif;
+  font-weight: 700;
+}
+
+.page-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+.site-footer {
+  margin: 1.5rem -1rem -1.5rem;
+  border-radius: 6px 6px 0 0;
+  background: var(--color-footer);
+  color: var(--color-footer-text);
+  font-size: 0.8rem;
+  padding: 0.6rem 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+}
+
+.card {
+  border-radius: 6px;
+}
+
+.card-header {
+  font-family: "Red Hat Display", sans-serif;
+  font-weight: 700;
+}
+
+.note {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+}
+
+/*--- About page ---*/
+
+.hero {
+  padding: 1rem 0 1.5rem;
+  max-width: 850px;
+}
+
+.hero h1 {
+  color: var(--color-uw-red);
+  font-weight: 700;
+}
+
+.hero-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.bslib-value-box .value-box-value {
+  font-family: "Red Hat Display", sans-serif;
+  font-weight: 700;
+  font-size: 1.75rem;
+  white-space: nowrap;
+}
+
+.bslib-value-box .value-box-title {
+  font-weight: 500;
+}
+
+.bslib-value-box p {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+
+/*--- Summary page ---*/
+
+.summary-frame {
+  width: 100%;
+  height: calc(100vh - 110px);
+  border: 0;
+  display: block;
+  background: #ffffff;
+}
+
+/*--- Explore page ---*/
+
+.map-card {
+  min-height: 55vh;
+}
+
+.selection-card {
+  min-height: 55vh;
+}
+
+.selection-card .card-body {
+  overflow-y: auto;
+}
+
+.sel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.sel-header h5 {
+  font-weight: 700;
+}
+
+.sel-header .btn {
+  white-space: nowrap;
+}
+
+.legend-note {
+  font-weight: 400;
+  font-size: 0.75rem;
+  color: var(--color-muted);
+}
+
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.stat {
+  background: var(--color-page-bg);
+  border-radius: 6px;
+  padding: 0.4rem 0.5rem;
+  text-align: center;
+}
+
+.stat-value {
+  font-family: "Red Hat Display", sans-serif;
+  font-weight: 700;
+  font-size: 1.35rem;
+  line-height: 1.2;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.stat-sub {
+  font-size: 0.7rem;
+  color: var(--color-muted);
+}
+
+@media (max-width: 575px) {
+  .stat-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.bslib-sidebar-layout > .sidebar .shiny-input-container {
+  margin-bottom: 0.75rem;
+}
+
+.maplibregl-popup-content {
+  font-family: "Red Hat Text", sans-serif;
+  font-size: 0.8rem;
+  max-width: 320px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

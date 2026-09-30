@@ -177,6 +177,54 @@ summarize_exceedances <- function(exceedances, ...) {
     )
 }
 
+## build_sample_status ----
+# one benchmark status per sample x analyte x benchmark, for the featured
+# analytes plus "Total" (any featured analyte) and a "primary" pseudo-benchmark
+# (either primary benchmark for the sample's water type, D6). When several
+# results are combined the most serious status wins: Exceeds > Indeterminate > Below
+status_rank <- c(Below = 1L, Indeterminate = 2L, Exceeds = 3L)
+
+build_sample_status <- function(exceedances, benchmarks) {
+  worst_status <- function(status) {
+    names(status_rank)[max(status_rank[as.character(status)])]
+  }
+
+  keys <- c("site_type", "site_id", "date", "year", "sample_seq")
+
+  exc <- exceedances |>
+    filter(analyte %in% featured_analytes) |>
+    left_join(
+      distinct(benchmarks, benchmark, primary_for),
+      join_by(benchmark)
+    ) |>
+    mutate(
+      analyte = as.character(analyte),
+      benchmark = as.character(benchmark),
+      primary = as.character(site_type) == primary_for
+    )
+
+  primary <- exc |>
+    filter(primary) |>
+    summarize(status = worst_status(status), .by = c(all_of(keys), analyte)) |>
+    mutate(benchmark = "primary")
+
+  by_analyte <- bind_rows(
+    select(exc, all_of(keys), analyte, benchmark, status),
+    primary
+  )
+
+  total <- by_analyte |>
+    summarize(status = worst_status(status), .by = c(all_of(keys), benchmark)) |>
+    mutate(analyte = "Total")
+
+  bind_rows(by_analyte, total) |>
+    mutate(
+      analyte = factor(analyte, names(analyte_colors)),
+      benchmark = factor(benchmark, c("primary", levels(benchmarks$benchmark))),
+      status = factor(status, names(status_colors))
+    )
+}
+
 ## benchmark_label ----
 benchmark_labels <- function(benchmarks) {
   benchmarks |>
