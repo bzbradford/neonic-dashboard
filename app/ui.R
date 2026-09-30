@@ -34,6 +34,11 @@ ui <- page_navbar(
       name = "description",
       content = "Neonicotinoid insecticide monitoring results for Wisconsin surface water and groundwater, from DATCP monitoring data."
     ),
+    tags$link(rel = "icon", type = "image/svg+xml", href = "favicon.svg"),
+    tags$link(rel = "icon", type = "image/png", sizes = "32x32", href = "favicon-32.png"),
+    tags$link(rel = "icon", type = "image/png", sizes = "16x16", href = "favicon-16.png"),
+    tags$link(rel = "apple-touch-icon", sizes = "180x180", href = "apple-touch-icon.png"),
+    tags$meta(name = "theme-color", content = brand$red),
     tags$link(rel = "stylesheet", type = "text/css", href = "styles.css"),
     reduced_motion_js
   ),

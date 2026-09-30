@@ -23,7 +23,7 @@ The app has three pages:
 │   ├── ui.R, server.R
 │   ├── functions.R     # analysis helpers shared by the app and the report
 │   ├── src/            # page modules: about, summary, explore (+ map data, charts)
-│   └── www/            # styles.css, analysis.html (generated)
+│   └── www/            # styles.css, favicon/app icons, analysis.html (generated)
 ├── data_check.R        # original data exploration
 ├── PLAN.md             # project plan, data decisions (D1–D13), and findings
 └── renv.lock
