@@ -28,7 +28,7 @@ blur_grid_deg <- 0.01 # snap grid (~1.1 km N-S, ~0.8 km E-W)
 blur_inset_m <- 50 # min distance inside the correct county/watershed zone
 
 epa_benchmark_url <- "https://www.epa.gov/pesticide-science-and-assessing-pesticide-risks/aquatic-life-benchmarks-and-ecological-risk"
-nr140_url <- NA_character_ # TODO: Ben to supply
+nr140_url <- "https://dnr.wisconsin.gov/topic/Groundwater/NR140.html"
 
 data_dir <- function(f) file.path("data", f)
 shp_dir <- function(f) file.path("shp", f)

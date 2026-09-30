@@ -140,6 +140,26 @@ Builds on `data_check.R`, keeping all raw → clean logic in one script.
 
 A single self-contained HTML report in the WAV Quarto style (cosmo + Red Hat fonts, `code-fold`, `echo: false`, `freeze: auto`). Each section is a candidate app component.
 
+**Status: done (2026-09-30).**
+- Render with `quarto render analysis.qmd`. It needs `app/data.RData` and sources `app/functions.R`.
+- Output is `analysis.html`: about 17 MB and self-contained (`embed-resources: true`), gitignored.
+- `app/functions.R` holds the shared summaries (`summarize_detections()`, `summarize_exceedances()`, `apply_reporting_level()`, `add_total_analyte()`, `build_site_popups()`) and the color and format helpers.
+
+**Chart colors.**
+- Analytes use fixed categorical slots: imidacloprid blue, clothianidin orange, thiamethoxam aqua, total gray.
+- Exceedance status is red / light blue / light gray for Exceeds / Below / Indeterminate.
+- Choropleths use blues for detection frequency and reds for concentration or exceedance.
+- In the static maps, no-data areas are white with gray borders, because the planned light gray was too close to the lightest blue. The app should use a hatch pattern for no data.
+
+**Findings that shape the app.**
+- Primary-benchmark exceedances:
+  - Surface water: 8.6% of samples (126) and 25 of 147 sites, driven by imidacloprid and clothianidin chronic benchmarks.
+  - Groundwater: 15.2% of samples (662) and 150 of 2,188 wells, all imidacloprid PAL/ES.
+- Before 2019, almost every surface-water non-detect is *Indeterminate* against the imidacloprid and clothianidin chronic benchmarks (DL ≥ 0.05). So exceedance-over-time views need the Indeterminate category visible, not dropped.
+- Raw detection-frequency trends mostly reflect falling DLs, especially for surface water. At a common 0.067 or 0.2 µg/L level, surface-water imidacloprid and clothianidin detections are rare in every year. If the app shows a trend, it should use a common reporting level or carry a clear caveat.
+- Groundwater detection frequency drops sharply below about 100 ft of well depth, but only 983 of 2,188 wells have a recorded depth.
+- The benchmark lines on concentration plots span five orders of magnitude (0.01 to 1,000 µg/L). Plots should draw only the benchmarks inside the data range and list the rest in a caption.
+
 1. **Data overview:** records, sites, date span, and analytes tested by water type. Sampling effort by year (bar chart) and by month (SW seasonality).
 2. **Detection limits:** DL by analyte × year (heatmap / table), and why it matters for trends.
 3. **Detection frequency:** by analyte × water type (grouped bars, the SPEC §6.2 teaser); annual trend raw vs. common reporting level (D10); % of sites ever detected.

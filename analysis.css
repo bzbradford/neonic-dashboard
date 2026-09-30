@@ -1,0 +1,41 @@
+@import url("https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@500;700&family=Red+Hat+Text:wght@400;500&display=swap");
+
+:root {
+  --color-uw-red: #c5050c;
+  --color-text: #1f2328;
+}
+
+body {
+  font-family: "Red Hat Text", sans-serif;
+  color: var(--color-text);
+}
+
+h1,
+h2,
+h3,
+h4,
+.title,
+.subtitle {
+  font-family: "Red Hat Display", sans-serif;
+}
+
+h1.title {
+  color: var(--color-uw-red);
+  font-weight: 700;
+}
+
+h1 {
+  border-bottom: 2px solid var(--color-uw-red);
+  padding-bottom: 0.25rem;
+  margin-top: 2.5rem;
+}
+
+.gt_table {
+  font-family: "Red Hat Text", sans-serif !important;
+}
+
+.maplibregl-popup-content {
+  font-family: "Red Hat Text", sans-serif;
+  font-size: 0.85rem;
+  max-width: 320px;
+}
