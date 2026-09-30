@@ -39,3 +39,9 @@ h1 {
   font-size: 0.85rem;
   max-width: 320px;
 }
+
+/* table of contents section numbers: Quarto default #747a7f is 4.3:1 */
+.header-section-number,
+#TOC .header-section-number {
+  color: #5c6166;
+}

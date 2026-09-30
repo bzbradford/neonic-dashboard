@@ -126,6 +126,7 @@ results |>
 
 ```{r}
 #| fig-height: 4
+#| fig-alt: "Bar charts of sample events per year for surface water and groundwater; sampling increased over time, with few groundwater samples before 2011."
 samples |>
   count(site_type, year) |>
   ggplot(aes(year, n)) +
@@ -140,6 +141,7 @@ Groundwater sampling before 2011 is sparse (`r nrow(filter(samples, site_type ==
 
 ```{r}
 #| fig-height: 4
+#| fig-alt: "Bar chart of the share of surface water samples with any neonicotinoid detected, by sampling month."
 res_f |>
   filter(site_type == "Surface water", analyte == "Total") |>
   summarize_detections(month) |>
@@ -160,6 +162,7 @@ Laboratory detection limits (DL) have dropped roughly 20–50-fold over the moni
 
 ```{r}
 #| fig-height: 4.5
+#| fig-alt: "Heatmap of detection limits by year for surface water and groundwater, showing limits falling from 0.2 to 0.5 micrograms per liter before 2015 to 0.01 from 2019 on."
 results |>
   filter(featured) |>
   count(site_type, year, dl) |>
@@ -180,6 +183,7 @@ det_by_analyte <- res_f |>
 
 ```{r}
 #| fig-height: 4.5
+#| fig-alt: "Bar charts of detection frequency for each analyte and for any neonicotinoid, in surface water and groundwater; percentages are labeled on the bars and listed in the table below."
 det_by_analyte |>
   ggplot(aes(analyte, det_freq, fill = analyte)) +
   geom_col(width = 0.7) +
@@ -218,6 +222,7 @@ The common-level lines compare like with like across years, at the cost of short
 
 ```{r}
 #| fig-height: 8
+#| fig-alt: "Line charts of annual detection frequency by analyte for surface water and groundwater, as reported and at common reporting levels of 0.067 and 0.2 micrograms per liter; at common levels, surface water imidacloprid and clothianidin detections are rare in every year."
 trend <- bind_rows(
   res_f |> filter(analyte != "Total") |> mutate(basis = "As reported"),
   res_f |> filter(analyte != "Total") |> apply_reporting_level(0.067) |> mutate(basis = "Common level ≥ 0.067 µg/L"),
@@ -245,6 +250,7 @@ Concentrations of **detections only**, on a log scale. Dashed lines show the ben
 
 ```{r}
 #| fig-height: 5.5
+#| fig-alt: "Dot and box plots of detected concentrations by analyte on a log scale, with dashed benchmark lines; groundwater detections are generally higher than surface water detections."
 det_pts <- res_f |>
   filter(detected, analyte != "Total")
 
@@ -382,6 +388,7 @@ exc_summary |>
 
 ```{r}
 #| fig-height: 8
+#| fig-alt: "Stacked bar charts showing, for each analyte and benchmark, the share of samples that exceed, fall below, or cannot be classified against the benchmark, for surface water and groundwater."
 exc_summary |>
   arrange(site_type, analyte, desc(primary), benchmark) |>
   select(site_type, analyte, short_label, primary, n_exceeds, n_below, n_indeterminate) |>
@@ -406,6 +413,7 @@ Annual share of samples in each status for the benchmarks that are exceeded most
 
 ```{r}
 #| fig-height: 8
+#| fig-alt: "Stacked bar charts by year of the share of samples exceeding, below, or indeterminate for the most frequently exceeded benchmarks; indeterminate results shrink after 2019 as detection limits fell."
 key_combos <- exc_summary |>
   filter(n_exceeds >= 50) |>
   distinct(site_type, analyte, benchmark, short_label)
@@ -474,6 +482,7 @@ gw_det |>
 
 ```{r}
 #| fig-height: 4
+#| fig-alt: "Grouped bar chart of groundwater detection frequency by well depth and analyte; detections are most common in wells shallower than 100 feet."
 gw_res |>
   filter(analyte != "Total") |>
   add_site_geo(sites, "well_depth") |>
@@ -547,6 +556,7 @@ choropleth <- function(shapes, summary, key, value, ramp, label, pct = TRUE) {
 
 ```{r}
 #| fig-height: 5.5
+#| fig-alt: "Maps of Wisconsin counties colored by the share of samples with any neonicotinoid detected, for surface water and groundwater; counties without monitoring data are white."
 choropleth(counties, county_summary, "county", "det_freq", freq_ramp, "Samples with any neonicotinoid detected")
 ```
 
@@ -554,6 +564,7 @@ choropleth(counties, county_summary, "county", "det_freq", freq_ramp, "Samples w
 
 ```{r}
 #| fig-height: 5.5
+#| fig-alt: "Maps of Wisconsin DNR watersheds colored by the share of samples with any neonicotinoid detected, for surface water and groundwater; watersheds without monitoring data are white."
 choropleth(watersheds, wshed_summary, "wshed_code", "det_freq", freq_ramp, "Samples with any neonicotinoid detected")
 ```
 
@@ -561,6 +572,7 @@ choropleth(watersheds, wshed_summary, "wshed_code", "det_freq", freq_ramp, "Samp
 
 ```{r}
 #| fig-height: 5.5
+#| fig-alt: "Maps of Wisconsin counties colored by the share of sites with at least one primary benchmark exceedance, for surface water and groundwater."
 choropleth(counties, county_summary, "county", "pct_sites_exceed", conc_ramp, "Sites with ≥1 primary benchmark exceedance")
 ```
 
@@ -603,14 +615,14 @@ map_pts <- sites |>
   st_as_sf(coords = c("map_lon", "map_lat"), crs = 4326)
 
 status_vals <- c("Exceeded a primary benchmark", "Detected", "Not detected")
-status_cols <- c(status_colors[["Exceeds"]], analyte_colors[["Imidacloprid"]], "#b9b8b1")
+status_cols <- c(status_colors[["Exceeds"]], analyte_colors[["Imidacloprid"]], "#8f8e88")
 
 add_sites <- function(map, type, id) {
   map |>
     add_circle_layer(
       id = id,
       source = filter(map_pts, site_type == type),
-      circle_color = match_expr("status", values = status_vals, stops = status_cols, default = "#b9b8b1"),
+      circle_color = match_expr("status", values = status_vals, stops = status_cols, default = "#8f8e88"),
       circle_radius = if (type == "Surface water") 6 else 4,
       circle_stroke_color = "white",
       circle_stroke_width = 1,
@@ -637,6 +649,7 @@ The combined total adds together all detected neonicotinoids in a sample. There 
 
 ```{r}
 #| fig-height: 4
+#| fig-alt: "Histograms of the combined total concentration of detected neonicotinoids per sample, shaded by how many analytes were detected, for surface water and groundwater."
 samples |>
   filter(any_detected) |>
   mutate(n_detected = factor(pmin(n_detected, 3), 1:3, c("1 analyte", "2 analytes", "3+ analytes"))) |>

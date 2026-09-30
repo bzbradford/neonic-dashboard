@@ -14,7 +14,16 @@ exploreUI <- function(id = "explore") {
     # Sidebar ----
     sidebar = sidebar(
       width = 290,
+      resizable = FALSE, # the resize handle lacks required ARIA attributes
       title = "Map options",
+
+      # keyboard/screen-reader alternative to clicking the map
+      selectizeInput(
+        ns("find"),
+        "Find a place",
+        choices = c("", find_choices),
+        options = list(placeholder = "County, watershed, or site")
+      ),
 
       radioButtons(
         ns("water"),
@@ -89,8 +98,14 @@ exploreUI <- function(id = "explore") {
       card(
         full_screen = TRUE,
         class = "map-card",
+        role = "region",
+        `aria-label` = "Map",
         card_body(
           padding = 0,
+          p(
+            class = "visually-hidden",
+            "Interactive map of monitoring results. Click a county, watershed or site to select it, or use the Find a place box in the map options. The selected place's results are summarized in the panel next to the map."
+          ),
           maplibreOutput(ns("map"), height = "100%")
         )
       ),
@@ -98,14 +113,24 @@ exploreUI <- function(id = "explore") {
       ## Selection panel ----
       card(
         class = "selection-card",
-        card_header(uiOutput(ns("sel_header"))),
+        role = "region",
+        `aria-label` = "Selected place results",
+        # announce selection and summary changes to screen readers
+        card_header(
+          `aria-live` = "polite",
+          uiOutput(ns("sel_header"))
+        ),
         card_body(
-          uiOutput(ns("sel_stats")),
+          div(`aria-live` = "polite", uiOutput(ns("sel_stats"))),
           navset_underline(
             id = ns("sel_tabs"),
             nav_panel(
               "Over time",
-              plotlyOutput(ns("ts_plot"), height = "380px"),
+              div(
+                role = "figure",
+                `aria-label` = "Chart of individual sample results over time. The same results are listed in the Sites or Results tab.",
+                plotlyOutput(ns("ts_plot"), height = "380px")
+              ),
               div(
                 class = "note",
                 "Filled points are detections; open points are non-detects plotted at the detection limit. Dashed lines are benchmarks."
@@ -113,7 +138,11 @@ exploreUI <- function(id = "explore") {
             ),
             nav_panel(
               "By year",
-              plotlyOutput(ns("annual_plot"), height = "380px"),
+              div(
+                role = "figure",
+                `aria-label` = "Bar chart of the share of samples with a detection in each year.",
+                plotlyOutput(ns("annual_plot"), height = "380px")
+              ),
               div(
                 class = "note",
                 "Share of samples with a detection each year. Detection limits fell from 0.2–0.5 µg/L before 2015 to 0.01 µg/L from 2019, so earlier years undercount detections."
@@ -497,10 +526,8 @@ exploreServer <- function(id = "explore") {
         props <- f$properties
         new_sel <- switch(
           f$layer,
-          "county-fill" = ,
-          "county-hatch" = list(type = "county", key = props$key),
-          "wshed-fill" = ,
-          "wshed-hatch" = list(type = "wshed", key = props$key),
+          "county-fill" = list(type = "county", key = props$key),
+          "wshed-fill" = list(type = "wshed", key = props$key),
           "sites" = list(type = "site", key = props$site_key),
           NULL # basemap features are ignored
         )
@@ -509,13 +536,54 @@ exploreServer <- function(id = "explore") {
         if (identical(new_sel, rv$sel)) rv$sel <- NULL else rv$sel <- new_sel
       })
 
+      ## zoom_to ----
+      # moves the map to a selection; no animation if the user prefers reduced motion
+      zoom_to <- function(sel) {
+        reduced <- isTRUE(session$rootScope()$input$reduced_motion)
+        if (sel$type == "site") {
+          site <- filter(app_sites, site_key == sel$key)
+          center <- c(site$map_lon, site$map_lat)
+          if (reduced) {
+            proxy |> set_view(center = center, zoom = 10)
+          } else {
+            proxy |> fly_to(center = center, zoom = 10)
+          }
+        } else {
+          shape <- filter(geo_layers[[sel$type]]$shapes, key == sel$key)
+          proxy |>
+            fit_bounds(as.numeric(st_bbox(shape)), animate = !reduced, padding = 40)
+        }
+      }
+
       ## table row clicks ----
       observeEvent(input$site_row, {
-        key <- input$site_row
-        rv$sel <- list(type = "site", key = key)
-        site <- filter(app_sites, site_key == key)
-        proxy |>
-          fly_to(center = c(site$map_lon, site$map_lat), zoom = 10)
+        rv$sel <- list(type = "site", key = input$site_row)
+        zoom_to(rv$sel)
+      })
+
+      ## find a place ----
+      observeEvent(input$find, ignoreInit = TRUE, {
+        if (input$find == "") {
+          rv$sel <- NULL
+          return()
+        }
+        parts <- str_split_1(input$find, ":")
+        new_sel <- list(type = parts[1], key = parts[2])
+        # ignore updates that just mirror a selection made elsewhere
+        if (identical(new_sel, rv$sel)) {
+          return()
+        }
+        rv$sel <- new_sel
+        zoom_to(new_sel)
+      })
+
+      # keep the find box in sync with map and table selections
+      observe({
+        sel <- rv$sel
+        value <- if (is.null(sel)) "" else paste0(sel$type, ":", sel$key)
+        if (!identical(isolate(input$find), value)) {
+          updateSelectizeInput(session, "find", selected = value)
+        }
       })
 
       observeEvent(input$clear_sel, {
@@ -536,7 +604,7 @@ exploreServer <- function(id = "explore") {
         div(
           class = "sel-header",
           div(
-            h5(class = "mb-0", sel_name()),
+            h2(class = "h5 mb-0", sel_name()),
             div(
               class = "note",
               sprintf(

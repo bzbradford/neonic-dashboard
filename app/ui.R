@@ -34,25 +34,15 @@ ui <- page_navbar(
       name = "description",
       content = "Neonicotinoid insecticide monitoring results for Wisconsin surface water and groundwater, from DATCP monitoring data."
     ),
-    tags$link(rel = "stylesheet", type = "text/css", href = "styles.css")
+    tags$link(rel = "stylesheet", type = "text/css", href = "styles.css"),
+    reduced_motion_js
   ),
 
   # Pages ----
   nav_panel("About", aboutUI(), icon = bs_icon("info-circle")),
   nav_panel("Summary", summaryUI(), icon = bs_icon("file-text"), class = "p-0"),
-  nav_panel("Explore", exploreUI(), icon = bs_icon("map")),
+  nav_panel("Explore", exploreUI(), icon = bs_icon("map"))
 
-  # Partner links ----
-  nav_spacer(),
-  nav_menu(
-    "Partners",
-    align = "right",
-    nav_item(build_link("Wisconsin DATCP", "https://datcp.wi.gov/")),
-    nav_item(build_link("UW–Madison Extension", "https://extension.wisc.edu/")),
-    nav_item(build_link("Clean Wisconsin", "https://www.cleanwisconsin.org/")),
-    nav_item(build_link(
-      "River Alliance of Wisconsin",
-      "https://wisconsinrivers.org/"
-    ))
-  )
+  # partner links are in the About page footer: a menu inside the navbar's
+  # tab list is invalid ARIA (aria-required-children, listitem)
 )

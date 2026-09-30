@@ -222,11 +222,28 @@ WAV Dashboard architecture, with SPEC §6 content and §7 styling.
   - `shiny::testServer()` covers the Explore module: filters, clicks, URL-free paths, the download, empty selections and "Both".
   - Headless Chrome screenshots at 1440×900 and phone width show no console errors.
 
+**Done since the first version (2026-09-30):**
+- Ben: lint pass, renv at the project root (R 4.6), copy review, deployed to Connect with Posit Publisher (`app/.posit/publish/`). Partner logos aren't needed.
+- Accessibility pass (WCAG 2.1 AA):
+  - **Contrast:** muted text darkened to `#6b6a66` (5.4:1). "Not detected" map points darkened to `#8f8e88` (3.1:1 vs. the basemap). Inactive navbar links raised to 90% white (5.1:1). Report TOC section numbers fixed.
+  - **CVD check:** the site status colors stay well separated under protan, deutan and tritan simulation (ΔE ≥ 27).
+  - **Keyboard:**
+    - Visible `:focus-visible` rings.
+    - A "Find a place" search box (every county, watershed and site), so the map can be used without a mouse.
+    - Site names in the sites table are buttons.
+    - The sidebar resize handle is removed (it had invalid ARIA).
+  - **Screen readers:**
+    - `aria-live` on the selection header and stats.
+    - Labeled map and chart regions.
+    - Heading order h1 → h2.
+    - The benchmark table is plain HTML with a caption and scoped headers.
+    - New-tab links are announced.
+    - The Partners navbar menu (invalid inside the tab list) moved to About-page footer links.
+    - `fig-alt` text on all 13 report figures.
+  - **Motion:** map zooms respect `prefers-reduced-motion` (no animation).
+  - **axe-core** (WCAG 2 A/AA rules) is clean on About. Explore and the report each have one finding inside a third-party widget: reactable's internal live region and gt's `headers` attributes.
+
 **Still to do:**
-- Deploy with `rsconnect` to `connect.doit.wisc.edu` (optionally with `renv` in `app/`).
-- Partner logos and final links: currently organization homepages in the Partners menu.
-- Copy review with Ben.
-- An accessibility pass (keyboard focus on the map, color-blind check of the site status colors).
 - Check load time on Connect.
 
 ---

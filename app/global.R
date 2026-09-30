@@ -89,7 +89,7 @@ year_range <- range(results$year)
 site_status_colors <- c(
   "Exceeded benchmark" = status_colors[["Exceeds"]],
   "Detected" = "#2a78d6",
-  "Not detected" = "#b9b8b1"
+  "Not detected" = "#8f8e88" # 3.1:1 against the basemap (WCAG non-text)
 )
 
 no_data_color <- "#e2e5e9"
@@ -143,6 +143,24 @@ geo_layers <- list(
 
 wi_bbox <- st_bbox(wi_state)
 
+## find_choices ----
+# searchable list of every selectable place; values are "type:key"
+find_choices <- local({
+  opts <- function(type, keys, names) {
+    set_names(paste0(type, ":", keys), names)
+  }
+  site_opts <- function(type) {
+    s <- filter(app_sites, site_type == type) |> arrange(site_label)
+    opts("site", s$site_key, s$site_label)
+  }
+  list(
+    "Counties" =opts("county", county_names$key, county_names$name),
+    "DNR watersheds" = opts("wshed", wshed_names$key, wshed_names$name),
+    "Surface water sites" = site_opts("Surface water"),
+    "Groundwater sites" = site_opts("Groundwater")
+  )
+})
+
 ## headline stats (About page) ----
 
 headline_stats <- local({
@@ -177,9 +195,27 @@ headline_stats <- local({
 
 # UI helpers -------------------------------------------------------------------
 
+# external link that opens in a new tab, announced to screen readers
 build_link <- function(text, href, ...) {
-  a(text, href = href, target = "_blank", .noWS = "outside", ...)
+  a(
+    text,
+    span(class = "visually-hidden", " (opens in a new tab)", .noWS = "outside"),
+    href = href,
+    target = "_blank",
+    rel = "noopener",
+    .noWS = "outside",
+    ...
+  )
 }
+
+# user's reduced-motion preference, sent to the server as input$reduced_motion
+reduced_motion_js <- tags$script(HTML(
+  "$(document).on('shiny:connected', function() {
+    var mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    Shiny.setInputValue('reduced_motion', mq.matches);
+    mq.addEventListener('change', function(e) { Shiny.setInputValue('reduced_motion', e.matches); });
+  });"
+))
 
 # shown at the bottom of the About page (a page_navbar footer overlaps
 # non-fillable pages)
@@ -195,7 +231,15 @@ site_footer <- function() {
       )
     ),
     div(
-      "Developed with UW–Madison Extension, Clean Wisconsin, and the River Alliance of Wisconsin."
+      "Developed with ",
+      build_link("UW–Madison Extension", "https://extension.wisc.edu/"),
+      ", ",
+      build_link("Clean Wisconsin", "https://www.cleanwisconsin.org/"),
+      ", and the ",
+      build_link("River Alliance of Wisconsin", "https://wisconsinrivers.org/"),
+      ". Data from ",
+      build_link("Wisconsin DATCP", "https://datcp.wi.gov/"),
+      "."
     )
   )
 }

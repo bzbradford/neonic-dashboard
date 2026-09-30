@@ -11,7 +11,7 @@ brand <- list(
   red_dark = "#9b0000",
   page_bg = "#f5f7fa",
   text = "#1f2328",
-  muted = "#898781",
+  muted = "#6b6a66", # 5.4:1 on white (WCAG AA text)
   grid = "#e1e0d9",
   no_data = "#e2e5e9"
 )

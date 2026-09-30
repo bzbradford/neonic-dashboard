@@ -58,23 +58,30 @@ benchmark_table <- function() {
     select(analyte, short_label, value) |>
     pivot_wider(names_from = short_label, values_from = value)
 
-  reactable(
-    df,
-    compact = TRUE,
-    sortable = FALSE,
-    defaultColDef = colDef(na = "–", align = "right"),
-    columns = list(
-      analyte = colDef("Analyte (µg/L)", align = "left", minWidth = 130)
-    ),
-    columnGroups = list(
-      colGroup(
-        "EPA aquatic life (invertebrates)",
-        c("Aquatic acute", "Aquatic chronic")
+  # a plain HTML table: reactable's grouped headers produce invalid ARIA
+  bm_cols <- c("Aquatic acute", "Aquatic chronic", "Proposed ES", "Proposed PAL")
+  tags$table(
+    class = "table table-sm benchmark-table",
+    tags$caption("Benchmark concentrations (µg/L)"),
+    tags$thead(
+      tags$tr(
+        tags$td(),
+        tags$th(scope = "colgroup", colspan = 2, "EPA aquatic life (invertebrates)"),
+        tags$th(scope = "colgroup", colspan = 2, "Proposed WI groundwater (NR 140)")
       ),
-      colGroup(
-        "Proposed WI groundwater (NR 140)",
-        c("Proposed ES", "Proposed PAL")
+      tags$tr(
+        tags$th(scope = "col", "Analyte"),
+        map(bm_cols, \(col) tags$th(scope = "col", class = "text-end", col))
       )
+    ),
+    tags$tbody(
+      pmap(df, function(analyte, ...) {
+        vals <- list(...)
+        tags$tr(
+          tags$th(scope = "row", analyte),
+          map(bm_cols, \(col) tags$td(class = "text-end", coalesce(vals[[col]], "–")))
+        )
+      })
     )
   )
 }
@@ -117,11 +124,11 @@ aboutUI <- function() {
     layout_columns(
       col_widths = breakpoints(sm = 12, lg = c(6, 6)),
       card(
-        card_header(bs_icon("water"), "Surface water"),
+        card_header(h2(class = "card-title", bs_icon("water"), "Surface water")),
         stat_cards("Surface water")
       ),
       card(
-        card_header(bs_icon("moisture"), "Groundwater"),
+        card_header(h2(class = "card-title", bs_icon("moisture"), "Groundwater")),
         stat_cards("Groundwater")
       )
     ),
@@ -130,7 +137,7 @@ aboutUI <- function() {
     layout_columns(
       col_widths = breakpoints(sm = 12, lg = c(6, 6)),
       card(
-        card_header("How to read this data"),
+        card_header(h2(class = "card-title", "How to read this data")),
         markdown(paste(
           "- **Detection:** the lab measured a neonicotinoid above its *detection limit*, the lowest concentration it can reliably measure. A non-detect means the concentration, if any, was below that limit, not that it was zero.",
           "- **Detection limits changed.** Early samples (before 2015) could only detect concentrations above about 0.2–0.5 µg/L; since 2019 the limit is 0.01 µg/L. More detections in recent years partly reflect better lab methods.",
@@ -141,7 +148,7 @@ aboutUI <- function() {
         ))
       ),
       card(
-        card_header("Benchmarks"),
+        card_header(h2(class = "card-title", "Benchmarks")),
         benchmark_table(),
         markdown(paste(
           "**EPA aquatic life benchmarks** ([source](https://www.epa.gov/pesticide-science-and-assessing-pesticide-risks/aquatic-life-benchmarks-and-ecological-risk)) estimate concentrations harmful to freshwater invertebrates from short-term (*acute*) or long-term (*chronic*) exposure. They apply to surface water.",
@@ -156,7 +163,7 @@ aboutUI <- function() {
 
     # Methods ----
     card(
-      card_header("About the data"),
+      card_header(h2(class = "card-title", "About the data")),
       markdown(paste(
         sprintf(
           "Samples were analyzed for six neonicotinoids. This dashboard focuses on the three found most often: **imidacloprid, clothianidin and thiamethoxam**. **Dinotefuran** was detected in only %s of %s samples, and **acetamiprid** (%s samples) and **thiacloprid** (%s samples) were screened for but never detected. Every analyte tested at a site is listed in that site's map popup.",

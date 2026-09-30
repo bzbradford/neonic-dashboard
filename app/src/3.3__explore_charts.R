@@ -287,14 +287,22 @@ sites_table <- function(res, status, input_id) {
     highlight = TRUE,
     defaultPageSize = 10,
     style = list(fontSize = "0.8rem"),
-    onClick = JS(sprintf(
-      "function(rowInfo) { Shiny.setInputValue('%s', rowInfo.row.site_key, {priority: 'event'}) }",
-      input_id
-    )),
-    rowStyle = list(cursor = "pointer"),
     columns = list(
       site_key = colDef(show = FALSE),
-      site_label = colDef("Site", minWidth = 170),
+      # site names are buttons so the table is keyboard accessible
+      site_label = colDef("Site", minWidth = 170, cell = \(value, index) {
+        tags$button(
+          type = "button",
+          class = "btn btn-link btn-sm p-0 text-start site-link",
+          title = "Select this site",
+          onclick = sprintf(
+            "Shiny.setInputValue('%s', '%s', {priority: 'event'})",
+            input_id,
+            df$site_key[index]
+          ),
+          value
+        )
+      }),
       site_type = colDef("Water", minWidth = 65),
       n_samples = colDef("Samples", minWidth = 65),
       n_detected = colDef("Detects", minWidth = 60),

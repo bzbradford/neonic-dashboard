@@ -49,6 +49,75 @@ body {
   font-weight: 700;
 }
 
+.card-header .card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+/*--- Accessibility ---*/
+
+/* inactive navbar links: 90% white on UW red is 5.1:1 (default 55% is 2.5:1) */
+.navbar,
+.navbar[data-bs-theme="dark"],
+.navbar.navbar-dark {
+  --bs-navbar-color: rgba(255, 255, 255, 0.9) !important;
+  --bs-navbar-hover-color: #ffffff !important;
+  --bs-navbar-active-color: #ffffff !important;
+}
+
+/* inactive tabs in the selection panel */
+.selection-card .nav-underline .nav-link:not(.active) {
+  color: var(--color-muted);
+}
+
+.site-footer a {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.site-footer a:focus-visible {
+  outline-color: #ffffff;
+}
+
+.benchmark-table caption {
+  caption-side: top;
+  font-size: 0.8rem;
+  color: var(--color-muted);
+}
+
+.benchmark-table thead th {
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+/* visible keyboard focus everywhere */
+a:focus-visible,
+button:focus-visible,
+.btn:focus-visible,
+.nav-link:focus-visible,
+.form-check-input:focus-visible,
+.form-select:focus-visible,
+.form-control:focus-visible,
+.selectize-input.focus,
+.irs-handle:focus-visible,
+.maplibregl-canvas:focus-visible {
+  outline: 3px solid var(--color-uw-red);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+.navbar .nav-link:focus-visible,
+.navbar a:focus-visible,
+.navbar button:focus-visible {
+  outline-color: #ffffff;
+}
+
+.site-link {
+  font-size: inherit;
+  color: var(--color-uw-red-dark);
+}
+
 .note {
   font-size: 0.8rem;
   color: var(--color-muted);
