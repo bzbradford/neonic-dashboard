@@ -1,0 +1,22 @@
+# R
+.Rproj.user
+.Rhistory
+.RData
+*.RData
+*.rds
+.Ruserdata
+.Renviron
+
+# raw inputs - not committed yet
+data/
+shp/
+
+# quarto
+/.quarto/
+**/*.quarto_ipynb
+_freeze/
+*_files/
+analysis.html
+
+# deployment
+**/rsconnect/

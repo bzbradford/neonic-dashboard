@@ -3,7 +3,7 @@ library(sf)
 library(leaflet)
 
 # boundaries
-wi_counties <- read_sf("shp/wi-counties.fgb")
+wi_counties <- read_sf("shp/wi-county-bounds-24k.fgb")
 wi_state <- st_union(wi_counties)
 
 # load and view watershed layers
