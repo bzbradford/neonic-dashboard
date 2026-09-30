@@ -91,6 +91,7 @@ exploreUI <- function(id = "explore") {
 
     # Main ----
     layout_columns(
+      class = "explore-columns",
       col_widths = breakpoints(sm = 12, lg = c(7, 5)),
       gap = "0.75rem",
 

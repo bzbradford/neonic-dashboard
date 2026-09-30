@@ -178,6 +178,35 @@ button:focus-visible,
   min-height: 55vh;
 }
 
+/* below the lg breakpoint the columns stack: size rows to their content
+   (instead of splitting the viewport height) and let the main area scroll,
+   so the map card can't overflow onto the selection panel */
+@media (max-width: 991.98px) {
+  .explore-columns {
+    grid-auto-rows: auto !important;
+    height: auto !important;
+    flex: none !important;
+  }
+
+  .explore-columns > .bslib-grid-item {
+    height: auto;
+    min-height: 0;
+  }
+
+  .explore-columns .map-card {
+    height: 60vh;
+    min-height: 360px;
+  }
+
+  .explore-columns .selection-card {
+    min-height: 0;
+  }
+
+  .bslib-sidebar-layout > .main {
+    overflow-y: auto;
+  }
+}
+
 .selection-card .card-body {
   overflow-y: auto;
 }
@@ -205,7 +234,9 @@ button:focus-visible,
 
 .stat-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  /* four across when there's room, otherwise two (the panel can be narrow
+     beside an open sidebar) */
+  grid-template-columns: repeat(auto-fit, minmax(max(96px, 22%), 1fr));
   gap: 0.5rem;
   margin-bottom: 0.5rem;
 }
@@ -234,9 +265,26 @@ button:focus-visible,
   color: var(--color-muted);
 }
 
-@media (max-width: 575px) {
-  .stat-row {
-    grid-template-columns: repeat(2, 1fr);
+/* narrow map (small screens, or beside an open sidebar): lift the bottom
+   legend above the map credits and tighten the legends */
+.map-card .card-body {
+  container-type: inline-size;
+}
+
+@container (max-width: 560px) {
+  .mapboxgl-legend.bottom-left {
+    bottom: 44px !important;
+  }
+
+  .mapboxgl-legend {
+    font-size: 0.72rem !important;
+  }
+}
+
+/* credits wrap to two lines on very narrow maps */
+@container (max-width: 420px) {
+  .mapboxgl-legend.bottom-left {
+    bottom: 66px !important;
   }
 }
 
