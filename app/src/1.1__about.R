@@ -12,7 +12,12 @@ stat_cards <- function(type) {
     value_box(
       title = "Samples",
       value = fmt_n(s$n_samples),
-      p(fmt_n(s$n_sites), if (type == "Groundwater") "wells" else "stream sites", "·", s$years),
+      p(
+        fmt_n(s$n_sites),
+        if (type == "Groundwater") "wells" else "stream sites",
+        "·",
+        s$years
+      ),
       theme = value_box_theme(bg = "#ffffff", fg = brand$text)
     ),
     value_box(
@@ -32,7 +37,11 @@ stat_cards <- function(type) {
       value = fmt_pct(s$pct_exceed, 0),
       p(
         "of samples, vs.",
-        if (type == "Groundwater") "proposed NR 140 standards" else "EPA aquatic life benchmarks"
+        if (type == "Groundwater") {
+          "proposed NR 140 standards"
+        } else {
+          "EPA aquatic life benchmarks"
+        }
       ),
       theme = value_box_theme(bg = "#ffffff", fg = brand$text)
     )
@@ -42,7 +51,10 @@ stat_cards <- function(type) {
 benchmark_table <- function() {
   df <- benchmarks |>
     filter(analyte %in% c(featured_analytes, "Acetamiprid")) |>
-    mutate(analyte = as.character(analyte), value = fmt_conc(value, units = FALSE)) |>
+    mutate(
+      analyte = as.character(analyte),
+      value = fmt_conc(value, units = FALSE)
+    ) |>
     select(analyte, short_label, value) |>
     pivot_wider(names_from = short_label, values_from = value)
 
@@ -51,10 +63,18 @@ benchmark_table <- function() {
     compact = TRUE,
     sortable = FALSE,
     defaultColDef = colDef(na = "–", align = "right"),
-    columns = list(analyte = colDef("Analyte (µg/L)", align = "left", minWidth = 130)),
+    columns = list(
+      analyte = colDef("Analyte (µg/L)", align = "left", minWidth = 130)
+    ),
     columnGroups = list(
-      colGroup("EPA aquatic life (invertebrates)", c("Aquatic acute", "Aquatic chronic")),
-      colGroup("Proposed WI groundwater (NR 140)", c("Proposed ES", "Proposed PAL"))
+      colGroup(
+        "EPA aquatic life (invertebrates)",
+        c("Aquatic acute", "Aquatic chronic")
+      ),
+      colGroup(
+        "Proposed WI groundwater (NR 140)",
+        c("Proposed ES", "Proposed PAL")
+      )
     )
   )
 }
@@ -78,8 +98,18 @@ aboutUI <- function() {
       ),
       div(
         class = "hero-buttons",
-        actionButton("go_explore", "Explore the map", icon = icon("map"), class = "btn-primary"),
-        actionButton("go_summary", "Read the data summary", icon = icon("chart-column"), class = "btn-outline-primary")
+        actionButton(
+          "go_explore",
+          "Explore the map",
+          icon = icon("map"),
+          class = "btn-primary"
+        ),
+        actionButton(
+          "go_summary",
+          "Read the data summary",
+          icon = icon("chart-column"),
+          class = "btn-outline-primary"
+        )
       )
     ),
 

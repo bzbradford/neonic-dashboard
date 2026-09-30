@@ -33,7 +33,12 @@ exploreUI <- function(id = "explore") {
 
       radioButtons(ns("analyte"), "Analyte", choices = analyte_choices),
 
-      radioButtons(ns("geo"), "Map areas", choices = geo_choices, inline = TRUE),
+      radioButtons(
+        ns("geo"),
+        "Map areas",
+        choices = geo_choices,
+        inline = TRUE
+      ),
 
       conditionalPanel(
         "input.geo != 'sites'",
@@ -120,7 +125,11 @@ exploreUI <- function(id = "explore") {
               reactableOutput(ns("sel_table")),
               div(
                 style = "margin-top: 0.5rem;",
-                downloadButton(ns("download"), "Download results (CSV)", class = "btn-sm btn-outline-secondary")
+                downloadButton(
+                  ns("download"),
+                  "Download results (CSV)",
+                  class = "btn-sm btn-outline-secondary"
+                )
               )
             )
           )
@@ -247,7 +256,12 @@ exploreServer <- function(id = "explore") {
           compact()
         query <- paste0(
           "?",
-          paste(names(params), map_chr(params, URLencode, reserved = TRUE), sep = "=", collapse = "&")
+          paste(
+            names(params),
+            map_chr(params, URLencode, reserved = TRUE),
+            sep = "=",
+            collapse = "&"
+          )
         )
         updateQueryString(query, mode = "replace")
       })
@@ -275,7 +289,9 @@ exploreServer <- function(id = "explore") {
         # proxy messages sent before the map exists are dropped, so the
         # initial selection (e.g. from the URL) is drawn here
         sel <- isolate(rv$sel)
-        sel_key <- \(type) if (!is.null(sel) && sel$type == type) sel$key else ""
+        sel_key <- \(type) {
+          if (!is.null(sel) && sel$type == type) sel$key else ""
+        }
 
         vis <- \(g) if (geo == g) "visible" else "none"
         area_layer <- function(map, g) {
@@ -296,7 +312,11 @@ exploreServer <- function(id = "explore") {
               source = paste0(g, "-fill"),
               line_color = "#8a8a86",
               line_width = 0.5,
-              visibility = if (geo == g || (geo == "sites" && g == "county")) "visible" else "none"
+              visibility = if (geo == g || (geo == "sites" && g == "county")) {
+                "visible"
+              } else {
+                "none"
+              }
             ) |>
             # no monitoring data: gray fill (set in build_area_layer) + dashed outline
             add_line_layer(
@@ -321,7 +341,12 @@ exploreServer <- function(id = "explore") {
             )
         }
 
-        sites_src <- build_site_layer(res, status, f$analyte, muted = geo != "sites")
+        sites_src <- build_site_layer(
+          res,
+          status,
+          f$analyte,
+          muted = geo != "sites"
+        )
 
         maplibre(
           style = carto_style("positron"),
@@ -379,7 +404,11 @@ exploreServer <- function(id = "explore") {
         }
         map |>
           add_categorical_legend(
-            legend_title = if (f$water == "Both") "Sites (outlined = surface water)" else "Sites",
+            legend_title = if (f$water == "Both") {
+              "Sites (outlined = surface water)"
+            } else {
+              "Sites"
+            },
             values = names(site_status_colors),
             colors = unname(site_status_colors),
             patch_shape = "circle",
@@ -404,8 +433,13 @@ exploreServer <- function(id = "explore") {
             for (suffix in c("-fill", "-nodata")) {
               proxy |> set_layout_property(paste0(g, suffix), "visibility", vis)
             }
-            line_vis <- if (geo == g || (geo == "sites" && g == "county")) "visible" else "none"
-            proxy |> set_layout_property(paste0(g, "-line"), "visibility", line_vis)
+            line_vis <- if (geo == g || (geo == "sites" && g == "county")) {
+              "visible"
+            } else {
+              "none"
+            }
+            proxy |>
+              set_layout_property(paste0(g, "-line"), "visibility", line_vis)
           }
           if (geo != "sites") {
             src <- build_area_layer(geo, res_f(), status_f(), metric)
@@ -415,8 +449,20 @@ exploreServer <- function(id = "explore") {
           # sites
           show_sites <- geo == "sites" || isTRUE(input$show_sites)
           proxy |>
-            set_layout_property("sites", "visibility", if (show_sites) "visible" else "none") |>
-            set_source("sites", build_site_layer(res_f(), status_f(), f$analyte, muted = geo != "sites"))
+            set_layout_property(
+              "sites",
+              "visibility",
+              if (show_sites) "visible" else "none"
+            ) |>
+            set_source(
+              "sites",
+              build_site_layer(
+                res_f(),
+                status_f(),
+                f$analyte,
+                muted = geo != "sites"
+              )
+            )
 
           proxy |>
             clear_legend() |>
@@ -427,11 +473,22 @@ exploreServer <- function(id = "explore") {
       ## selection highlight ----
       observe({
         sel <- rv$sel
-        key_for <- \(type) if (!is.null(sel) && sel$type == type) sel$key else ""
+        key_for <- \(type) {
+          if (!is.null(sel) && sel$type == type) sel$key else ""
+        }
         proxy |>
-          set_filter("county-sel", list("==", get_column("key"), key_for("county"))) |>
-          set_filter("wshed-sel", list("==", get_column("key"), key_for("wshed"))) |>
-          set_filter("site-sel", list("==", get_column("site_key"), key_for("site")))
+          set_filter(
+            "county-sel",
+            list("==", get_column("key"), key_for("county"))
+          ) |>
+          set_filter(
+            "wshed-sel",
+            list("==", get_column("key"), key_for("wshed"))
+          ) |>
+          set_filter(
+            "site-sel",
+            list("==", get_column("site_key"), key_for("site"))
+          )
       })
 
       ## map clicks ----
@@ -470,16 +527,34 @@ exploreServer <- function(id = "explore") {
       output$sel_header <- renderUI({
         sel <- rv$sel
         f <- filters()
-        types <- if (f$water == "Both") "Surface water & groundwater" else f$water
+        types <- if (f$water == "Both") {
+          "Surface water & groundwater"
+        } else {
+          f$water
+        }
         analyte_txt <- names(analyte_choices)[analyte_choices == f$analyte]
         div(
           class = "sel-header",
           div(
             h5(class = "mb-0", sel_name()),
-            div(class = "note", sprintf("%s · %s · %s–%s", types, analyte_txt, f$years[1], f$years[2]))
+            div(
+              class = "note",
+              sprintf(
+                "%s · %s · %s–%s",
+                types,
+                analyte_txt,
+                f$years[1],
+                f$years[2]
+              )
+            )
           ),
           if (!is.null(sel)) {
-            actionButton(ns("clear_sel"), "Statewide", icon = icon("xmark"), class = "btn-sm btn-outline-secondary")
+            actionButton(
+              ns("clear_sel"),
+              "Statewide",
+              icon = icon("xmark"),
+              class = "btn-sm btn-outline-secondary"
+            )
           }
         )
       })
@@ -488,7 +563,10 @@ exploreServer <- function(id = "explore") {
         res <- sel_res()
         status <- sel_status()
         if (nrow(res) == 0) {
-          return(div(class = "note", "No samples match the current filters for this selection."))
+          return(div(
+            class = "note",
+            "No samples match the current filters for this selection."
+          ))
         }
         s <- summarize_detections(res)
         e <- summarize(
@@ -498,16 +576,35 @@ exploreServer <- function(id = "explore") {
           n_indet = sum(status == "Indeterminate")
         )
         stat <- function(value, label, sub = NULL) {
-          div(class = "stat", div(class = "stat-value", value), div(class = "stat-label", label), if (!is.null(sub)) div(class = "stat-sub", sub))
+          div(
+            class = "stat",
+            div(class = "stat-value", value),
+            div(class = "stat-label", label),
+            if (!is.null(sub)) div(class = "stat-sub", sub)
+          )
         }
         div(
           class = "stat-row",
-          stat(fmt_n(s$n_samples), "samples", paste(fmt_n(s$n_sites), if (s$n_sites == 1) "site" else "sites")),
-          stat(fmt_pct(s$det_freq, 0), "detected", paste(fmt_n(s$n_detected), "samples")),
           stat(
-            if (is.na(s$median_det)) "–" else fmt_conc(s$median_det, units = FALSE),
+            fmt_n(s$n_samples),
+            "samples",
+            paste(fmt_n(s$n_sites), if (s$n_sites == 1) "site" else "sites")
+          ),
+          stat(
+            fmt_pct(s$det_freq, 0),
+            "detected",
+            paste(fmt_n(s$n_detected), "samples")
+          ),
+          stat(
+            if (is.na(s$median_det)) {
+              "–"
+            } else {
+              fmt_conc(s$median_det, units = FALSE)
+            },
             "median µg/L",
-            if (!is.na(s$max_det)) paste("max", fmt_conc(s$max_det, units = FALSE))
+            if (!is.na(s$max_det)) {
+              paste("max", fmt_conc(s$max_det, units = FALSE))
+            }
           ),
           stat(
             fmt_pct(e$n_exceed / e$n, 0),
@@ -519,13 +616,19 @@ exploreServer <- function(id = "explore") {
 
       output$ts_plot <- renderPlotly({
         d <- sel_res_all()
-        validate(need(nrow(d) > 0, "No samples match the current filters for this selection."))
+        validate(need(
+          nrow(d) > 0,
+          "No samples match the current filters for this selection."
+        ))
         plot_timeseries(d, bm_values())
       })
 
       output$annual_plot <- renderPlotly({
         d <- sel_res()
-        validate(need(nrow(d) > 0, "No samples match the current filters for this selection."))
+        validate(need(
+          nrow(d) > 0,
+          "No samples match the current filters for this selection."
+        ))
         plot_annual(d)
       })
 
@@ -546,7 +649,11 @@ exploreServer <- function(id = "explore") {
 
       output$download <- downloadHandler(
         filename = function() {
-          paste0("neonic-results-", str_replace_all(tolower(sel_name()), "[^a-z0-9]+", "-"), ".csv")
+          paste0(
+            "neonic-results-",
+            str_replace_all(tolower(sel_name()), "[^a-z0-9]+", "-"),
+            ".csv"
+          )
         },
         content = function(file) {
           keys <- sel_res() |> distinct(site_type, site_id)
@@ -554,10 +661,35 @@ exploreServer <- function(id = "explore") {
             semi_join(keys, join_by(site_type, site_id)) |>
             filter(between(year, filters()$years[1], filters()$years[2])) |>
             left_join(
-              st_drop_geometry(sites) |> select(site_type, site_id, site_label, county, wshed_name, map_lat, map_lon, location_blurred),
+              st_drop_geometry(sites) |>
+                select(
+                  site_type,
+                  site_id,
+                  site_label,
+                  county,
+                  wshed_name,
+                  map_lat,
+                  map_lon,
+                  location_blurred
+                ),
               join_by(site_type, site_id)
             ) |>
-            select(site_type, site_id, site_label, county, wshed_name, map_lat, map_lon, location_blurred, date, sample_seq, analyte, detected, result, dl) |>
+            select(
+              site_type,
+              site_id,
+              site_label,
+              county,
+              wshed_name,
+              map_lat,
+              map_lon,
+              location_blurred,
+              date,
+              sample_seq,
+              analyte,
+              detected,
+              result,
+              dl
+            ) |>
             write_csv(file, na = "")
         }
       )

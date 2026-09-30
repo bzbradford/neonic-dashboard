@@ -4,7 +4,6 @@
 # are computed here and passed to MapLibre as feature properties, so layer
 # updates only need to swap data (set_source) rather than rebuild expressions.
 
-
 # Filtering --------------------------------------------------------------------
 
 #' @param df app_results or app_status (or anything with the same columns)
@@ -70,7 +69,10 @@ area_stats <- function(res, status, geo_col) {
 
   lines <- res |>
     summarize_detections(all_of(geo_col), site_type) |>
-    left_join(exc_by(all_of(geo_col), site_type), join_by(!!geo_col, site_type)) |>
+    left_join(
+      exc_by(all_of(geo_col), site_type),
+      join_by(!!geo_col, site_type)
+    ) |>
     arrange(site_type) |>
     mutate(
       line = sprintf(
@@ -79,7 +81,11 @@ area_stats <- function(res, status, geo_col) {
         fmt_n(n_sites),
         fmt_n(n_samples),
         fmt_pct(det_freq, 0),
-        if_else(is.na(median_det), "", paste0(" (median ", fmt_conc(median_det), ")")),
+        if_else(
+          is.na(median_det),
+          "",
+          paste0(" (median ", fmt_conc(median_det), ")")
+        ),
         fmt_pct(coalesce(pct_exceed, 0), 0)
       )
     ) |>
@@ -126,7 +132,11 @@ metric_label <- function(metric, analyte) {
     metric,
     det_freq = paste("Samples with", analyte_txt, "detected"),
     pct_sites_det = paste("Sites with", analyte_txt, "detected"),
-    median_det = paste("Median", if (analyte == "Total") "combined total" else analyte, "detection"),
+    median_det = paste(
+      "Median",
+      if (analyte == "Total") "combined total" else analyte,
+      "detection"
+    ),
     pct_exceed = paste("Samples exceeding benchmark,", analyte_txt)
   )
 }
@@ -155,7 +165,11 @@ build_area_layer <- function(geo, res, status, metric) {
       tooltip = if_else(
         has_data,
         paste0("<b>", name, "</b><br>", lines),
-        paste0("<b>", name, "</b><br>No monitoring data for the current filters")
+        paste0(
+          "<b>",
+          name,
+          "</b><br>No monitoring data for the current filters"
+        )
       )
     ) |>
     select(key, name, has_data, fill, tooltip)
@@ -202,7 +216,11 @@ build_site_layer <- function(res, status, analyte, muted = FALSE) {
         n_detected,
         n_samples,
         if_else(n_detected > 0, paste0(" (max ", fmt_conc(max_det), ")"), ""),
-        if_else(coalesce(n_exceed, 0) > 0, paste0("<br>", n_exceed, " samples exceeded benchmark"), "")
+        if_else(
+          coalesce(n_exceed, 0) > 0,
+          paste0("<br>", n_exceed, " samples exceeded benchmark"),
+          ""
+        )
       )
     ) |>
     arrange(sort) |>

@@ -3,8 +3,6 @@
 # Analysis helpers used by both analysis.qmd and the Shiny app, so both compute
 # every number the same way. Expects the tidyverse to be loaded and the objects
 # in data.RData (built by R/prep_data.R) to be available.
-# Data decisions referenced below (D1, D4, ...) are documented in PLAN.md.
-
 
 # Colors -----------------------------------------------------------------------
 
@@ -123,7 +121,11 @@ apply_reporting_level <- function(results, level) {
 
 ## add_site_geo ----
 # attach county / watershed / well metadata from the sites table
-add_site_geo <- function(df, sites, cols = c("county", "wshed_code", "wshed_name", "well_use", "private_well")) {
+add_site_geo <- function(
+  df,
+  sites,
+  cols = c("county", "wshed_code", "wshed_name", "well_use", "private_well")
+) {
   left_join(
     df,
     select(sites, site_type, site_id, all_of(cols)),
@@ -214,7 +216,10 @@ build_sample_status <- function(exceedances, benchmarks) {
   )
 
   total <- by_analyte |>
-    summarize(status = worst_status(status), .by = c(all_of(keys), benchmark)) |>
+    summarize(
+      status = worst_status(status),
+      .by = c(all_of(keys), benchmark)
+    ) |>
     mutate(analyte = "Total")
 
   bind_rows(by_analyte, total) |>

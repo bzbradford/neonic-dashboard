@@ -159,7 +159,11 @@ headline_stats <- local({
     filter(analyte != "Total") |>
     summarize_detections(site_type, analyte) |>
     slice_max(det_freq, n = 1, by = site_type) |>
-    transmute(site_type, top_analyte = as.character(analyte), top_freq = det_freq)
+    transmute(
+      site_type,
+      top_analyte = as.character(analyte),
+      top_freq = det_freq
+    )
 
   exc <- app_status |>
     filter(analyte == "Total", benchmark == "primary") |>
@@ -184,9 +188,15 @@ site_footer <- function() {
     class = "site-footer",
     div(
       "Data: Wisconsin Department of Agriculture, Trade and Consumer Protection (DATCP).",
-      sprintf("Samples through %s · Updated %s.", format(last_sample_date, "%B %Y"), last_updated)
+      sprintf(
+        "Samples through %s · Updated %s.",
+        format(last_sample_date, "%B %Y"),
+        last_updated
+      )
     ),
-    div("Developed with UW–Madison Extension, Clean Wisconsin, and the River Alliance of Wisconsin.")
+    div(
+      "Developed with UW–Madison Extension, Clean Wisconsin, and the River Alliance of Wisconsin."
+    )
   )
 }
 

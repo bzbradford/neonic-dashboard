@@ -20,7 +20,9 @@ summaryServer <- function(input, output) {
     if (!file.exists("www/analysis.html")) {
       return(div(
         class = "page-content",
-        p("The data summary report hasn't been built yet. Run R/build.R to render it.")
+        p(
+          "The data summary report hasn't been built yet. Run R/build.R to render it."
+        )
       ))
     }
     tags$iframe(

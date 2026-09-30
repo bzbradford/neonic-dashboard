@@ -9,7 +9,11 @@ ui <- page_navbar(
   window_title = "Neonicotinoids in Wisconsin Waters",
   lang = "en",
   fillable = "Explore",
-  navbar_options = navbar_options(bg = brand$red, theme = "dark", underline = TRUE),
+  navbar_options = navbar_options(
+    bg = brand$red,
+    theme = "dark",
+    underline = TRUE
+  ),
 
   theme = bs_theme(
     version = 5,
@@ -17,7 +21,11 @@ ui <- page_navbar(
     fg = brand$text,
     bg = "#ffffff",
     base_font = font_google("Red Hat Text", wght = c(400, 500), local = FALSE),
-    heading_font = font_google("Red Hat Display", wght = c(500, 700), local = FALSE),
+    heading_font = font_google(
+      "Red Hat Display",
+      wght = c(500, 700),
+      local = FALSE
+    ),
     "navbar-brand-font-size" = "1.15rem"
   ),
 
@@ -42,6 +50,9 @@ ui <- page_navbar(
     nav_item(build_link("Wisconsin DATCP", "https://datcp.wi.gov/")),
     nav_item(build_link("UW–Madison Extension", "https://extension.wisc.edu/")),
     nav_item(build_link("Clean Wisconsin", "https://www.cleanwisconsin.org/")),
-    nav_item(build_link("River Alliance of Wisconsin", "https://wisconsinrivers.org/"))
+    nav_item(build_link(
+      "River Alliance of Wisconsin",
+      "https://wisconsinrivers.org/"
+    ))
   )
 )

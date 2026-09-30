@@ -4,7 +4,6 @@
 # harmonizes them, and saves everything the analysis and app need to
 # app/data.RData. Run from the project root:
 #   source("R/prep_data.R")
-# Data decisions referenced below (D1, D2, ...) are documented in PLAN.md.
 
 library(tidyverse)
 library(janitor)
@@ -301,7 +300,11 @@ blur_points <- function(pts_wtm, layer_sets, grid, inset) {
   list(
     geometry = snapped,
     n_moved = n_moved,
-    offset_m = as.numeric(st_distance(snapped, st_geometry(pts_wtm), by_element = TRUE))
+    offset_m = as.numeric(st_distance(
+      snapped,
+      st_geometry(pts_wtm),
+      by_element = TRUE
+    ))
   )
 }
 
@@ -430,10 +433,10 @@ samples <- results |>
 # Benchmarks -------------------------------------------------------------------
 
 benchmark_defs <- tribble(
-  ~benchmark        , ~col                       , ~label                                                 , ~short_label      , ~primary_for    , ~source                                                                         , ~url              ,
-  "aquatic_acute"   , "aquatic_acute_ppb"        , "EPA aquatic life benchmark, acute (invertebrates)"    , "Aquatic acute"   , "Surface water" , "US EPA Office of Pesticide Programs, Aquatic Life Benchmarks"                     , epa_benchmark_url ,
-  "aquatic_chronic" , "aquatic_chronic_ppb"      , "EPA aquatic life benchmark, chronic (invertebrates)"  , "Aquatic chronic" , "Surface water" , "US EPA Office of Pesticide Programs, Aquatic Life Benchmarks"                     , epa_benchmark_url ,
-  "proposed_es"     , "proposed_enforcement_ppb" , "Proposed WI groundwater enforcement standard (ES)"    , "Proposed ES"     , "Groundwater"   , "Wisconsin DNR, NR 140 groundwater quality standards, Cycle 13 review (proposed)" , nr140_url         ,
+  ~benchmark        , ~col                       , ~label                                                  , ~short_label      , ~primary_for    , ~source                                                                           , ~url              ,
+  "aquatic_acute"   , "aquatic_acute_ppb"        , "EPA aquatic life benchmark, acute (invertebrates)"     , "Aquatic acute"   , "Surface water" , "US EPA Office of Pesticide Programs, Aquatic Life Benchmarks"                    , epa_benchmark_url ,
+  "aquatic_chronic" , "aquatic_chronic_ppb"      , "EPA aquatic life benchmark, chronic (invertebrates)"   , "Aquatic chronic" , "Surface water" , "US EPA Office of Pesticide Programs, Aquatic Life Benchmarks"                    , epa_benchmark_url ,
+  "proposed_es"     , "proposed_enforcement_ppb" , "Proposed WI groundwater enforcement standard (ES)"     , "Proposed ES"     , "Groundwater"   , "Wisconsin DNR, NR 140 groundwater quality standards, Cycle 13 review (proposed)" , nr140_url         ,
   "proposed_pal"    , "proposed_preventive_ppb"  , "Proposed WI groundwater preventive action limit (PAL)" , "Proposed PAL"    , "Groundwater"   , "Wisconsin DNR, NR 140 groundwater quality standards, Cycle 13 review (proposed)" , nr140_url         ,
 ) |>
   mutate(benchmark = fct_inorder(benchmark))
@@ -644,4 +647,8 @@ save(
   file = "app/data.RData"
 )
 
-message("Saved app/data.RData (", format(file.size("app/data.RData") / 1e6, digits = 2), " MB)")
+message(
+  "Saved app/data.RData (",
+  format(file.size("app/data.RData") / 1e6, digits = 2),
+  " MB)"
+)

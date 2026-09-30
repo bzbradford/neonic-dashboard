@@ -70,7 +70,7 @@ This report explores neonicotinoid insecticide monitoring data collected by the 
 
 **Analytes.** Samples were screened for six neonicotinoids. Three are detected often and are the focus of this report: **imidacloprid, clothianidin and thiamethoxam**. **Dinotefuran** was detected only `r sum(results$detected & results$analyte == "Dinotefuran")` times, and **acetamiprid** and **thiacloprid** were screened for but never detected.
 
-**Conventions** (details in `PLAN.md`):
+**Conventions**:
 
 - A result is a *detection* when the lab reported a concentration above zero. Non-detects are never treated as zero in displays.
 - Concentration statistics (median, mean, max) are computed **over detections only**.
