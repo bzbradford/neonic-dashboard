@@ -21,7 +21,7 @@ body {
   font-weight: 700;
 }
 
-.page-content {
+.about-page {
   max-width: 1200px;
   margin: 0 auto;
   padding: 1.5rem 1rem;
@@ -107,6 +107,21 @@ button:focus-visible,
   box-shadow: none;
 }
 
+/* Share button, right-aligned in the navbar */
+.navbar-nav .bslib-nav-item {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  padding: 0.25rem 0;
+}
+
+.navbar .share-btn {
+  --bs-btn-color: #ffffff;
+  --bs-btn-border-color: rgba(255, 255, 255, 0.9);
+  --bs-btn-hover-color: var(--color-uw-red);
+  --bs-btn-hover-bg: #ffffff;
+}
+
 .navbar .nav-link:focus-visible,
 .navbar a:focus-visible,
 .navbar button:focus-visible {
@@ -126,8 +141,9 @@ button:focus-visible,
 /*--- About page ---*/
 
 .hero {
-  padding: 1rem 0 1.5rem;
-  max-width: 850px;
+  /* padding: 1rem 0 1.5rem; */
+  margin-bottom: 1.5rem;
+  /* max-width: 850px; */
 }
 
 .hero h1 {
@@ -160,12 +176,59 @@ button:focus-visible,
 
 /*--- Summary page ---*/
 
-.summary-frame {
+.summary-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* top padding matches the About hero, so the headings line up */
+.summary-header {
   width: 100%;
-  height: calc(100vh - 110px);
-  border: 0;
+  padding-top: 1.5rem;
+  padding-bottom: 0.75rem;
+}
+
+.summary-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+
+.summary-title h1 {
+  color: var(--color-uw-red);
+  font-weight: 700;
+  margin: 0;
+}
+
+.summary-header p {
+  margin: 0.5rem 0 0;
+}
+
+.summary-body {
+  width: 100%;
+  padding-top: 0;
+}
+
+/* the report sits on the page as a white sheet */
+.summary-frame {
+  /* max-width: 1000px; */
+  width: 100%;
+  min-height: 800px;
+  max-height: 100vh;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 6px;
   display: block;
   background: #ffffff;
+}
+
+/* bslib pages aren't fillable on phones, so give the report a height */
+@media (max-width: 575.98px) {
+  .summary-frame {
+    height: 80vh;
+  }
 }
 
 /*--- Explore page ---*/
@@ -188,7 +251,7 @@ button:focus-visible,
     flex: none !important;
   }
 
-  .explore-columns > .bslib-grid-item {
+  .explore-columns>.bslib-grid-item {
     height: auto;
     min-height: 0;
   }
@@ -202,7 +265,7 @@ button:focus-visible,
     min-height: 0;
   }
 
-  .bslib-sidebar-layout > .main {
+  .bslib-sidebar-layout>.main {
     overflow-y: auto;
   }
 }
@@ -288,7 +351,7 @@ button:focus-visible,
   }
 }
 
-.bslib-sidebar-layout > .sidebar .shiny-input-container {
+.bslib-sidebar-layout>.sidebar .shiny-input-container {
   margin-bottom: 0.75rem;
 }
 

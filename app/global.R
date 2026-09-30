@@ -154,7 +154,7 @@ find_choices <- local({
     opts("site", s$site_key, s$site_label)
   }
   list(
-    "Counties" =opts("county", county_names$key, county_names$name),
+    "Counties" = opts("county", county_names$key, county_names$name),
     "DNR watersheds" = opts("wshed", wshed_names$key, wshed_names$name),
     "Surface water sites" = site_opts("Surface water"),
     "Groundwater sites" = site_opts("Groundwater")
@@ -215,6 +215,45 @@ reduced_motion_js <- tags$script(HTML(
     Shiny.setInputValue('reduced_motion', mq.matches);
     mq.addEventListener('change', function(e) { Shiny.setInputValue('reduced_motion', e.matches); });
   });"
+))
+
+# share links: on Posit Connect the app runs in an iframe (whose path holds a
+# _w_<worker> segment), so the clean URL is read from and written to the top
+# window when it is reachable
+share_js <- tags$script(HTML(
+  "(function() {
+    function topWindow() {
+      try { window.top.location.href; return window.top; } catch (e) { return window; }
+    }
+    function baseUrl() {
+      var loc = topWindow().location;
+      return loc.origin + loc.pathname.replace(/_w_[0-9a-f]+\\/?$/, '');
+    }
+    $(document).on('shiny:connected', function() {
+      Shiny.addCustomMessageHandler('clear-url', function(x) {
+        var w = topWindow();
+        if (w.location.search) {
+          w.history.replaceState(w.history.state, '', baseUrl() + w.location.hash);
+        }
+      });
+      Shiny.addCustomMessageHandler('share-url', function(query) {
+        var el = document.getElementById('share_url');
+        if (!el) return;
+        el.value = baseUrl() + (query ? '?' + query : '');
+        $(el).closest('.modal').one('shown.bs.modal', function() { el.select(); });
+      });
+    });
+    $(document).on('click', '#share_copy', function() {
+      var btn = this, el = document.getElementById('share_url');
+      var done = function() { $(btn).find('span').text('Copied!'); };
+      var fallback = function() { el.select(); if (document.execCommand('copy')) done(); };
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(el.value).then(done, fallback);
+      } else {
+        fallback();
+      }
+    });
+  })();"
 ))
 
 # shown at the bottom of the About page (a page_navbar footer overlaps

@@ -59,15 +59,28 @@ benchmark_table <- function() {
     pivot_wider(names_from = short_label, values_from = value)
 
   # a plain HTML table: reactable's grouped headers produce invalid ARIA
-  bm_cols <- c("Aquatic acute", "Aquatic chronic", "Proposed ES", "Proposed PAL")
+  bm_cols <- c(
+    "Aquatic acute",
+    "Aquatic chronic",
+    "Proposed ES",
+    "Proposed PAL"
+  )
   tags$table(
     class = "table table-sm benchmark-table",
     tags$caption("Benchmark concentrations (µg/L)"),
     tags$thead(
       tags$tr(
         tags$td(),
-        tags$th(scope = "colgroup", colspan = 2, "EPA aquatic life (invertebrates)"),
-        tags$th(scope = "colgroup", colspan = 2, "Proposed WI groundwater (NR 140)")
+        tags$th(
+          scope = "colgroup",
+          colspan = 2,
+          "EPA aquatic life (invertebrates)"
+        ),
+        tags$th(
+          scope = "colgroup",
+          colspan = 2,
+          "Proposed WI groundwater (NR 140)"
+        )
       ),
       tags$tr(
         tags$th(scope = "col", "Analyte"),
@@ -79,7 +92,9 @@ benchmark_table <- function() {
         vals <- list(...)
         tags$tr(
           tags$th(scope = "row", analyte),
-          map(bm_cols, \(col) tags$td(class = "text-end", coalesce(vals[[col]], "–")))
+          map(bm_cols, \(col) {
+            tags$td(class = "text-end", coalesce(vals[[col]], "–"))
+          })
         )
       })
     )
@@ -90,7 +105,7 @@ aboutUI <- function() {
   n_nd <- function(a) sum(results$analyte == a)
 
   div(
-    class = "page-content",
+    class = "about-page",
 
     # Hero ----
     div(
@@ -124,11 +139,19 @@ aboutUI <- function() {
     layout_columns(
       col_widths = breakpoints(sm = 12, lg = c(6, 6)),
       card(
-        card_header(h2(class = "card-title", bs_icon("water"), "Surface water")),
+        card_header(h2(
+          class = "card-title",
+          bs_icon("water"),
+          "Surface water"
+        )),
         stat_cards("Surface water")
       ),
       card(
-        card_header(h2(class = "card-title", bs_icon("moisture"), "Groundwater")),
+        card_header(h2(
+          class = "card-title",
+          bs_icon("moisture"),
+          "Groundwater"
+        )),
         stat_cards("Groundwater")
       )
     ),

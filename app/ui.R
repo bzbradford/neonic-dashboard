@@ -8,7 +8,7 @@ ui <- page_navbar(
   ),
   window_title = "Neonicotinoids in Wisconsin Waters",
   lang = "en",
-  fillable = "Explore",
+  fillable = c("Summary", "Explore"),
   navbar_options = navbar_options(
     bg = brand$red,
     theme = "dark",
@@ -34,19 +34,44 @@ ui <- page_navbar(
       name = "description",
       content = "Neonicotinoid insecticide monitoring results for Wisconsin surface water and groundwater, from DATCP monitoring data."
     ),
-    tags$link(rel = "icon", type = "image/svg+xml", href = "favicon.svg"),
-    tags$link(rel = "icon", type = "image/png", sizes = "32x32", href = "favicon-32.png"),
-    tags$link(rel = "icon", type = "image/png", sizes = "16x16", href = "favicon-16.png"),
-    tags$link(rel = "apple-touch-icon", sizes = "180x180", href = "apple-touch-icon.png"),
+    tags$link(rel = "icon", type = "image/x-icon", href = "favicon.ico"),
+    tags$link(
+      rel = "icon",
+      type = "image/png",
+      sizes = "32x32",
+      href = "favicon-32.png"
+    ),
+    tags$link(
+      rel = "icon",
+      type = "image/png",
+      sizes = "16x16",
+      href = "favicon-16.png"
+    ),
+    tags$link(
+      rel = "apple-touch-icon",
+      sizes = "180x180",
+      href = "apple-touch-icon.png"
+    ),
     tags$meta(name = "theme-color", content = brand$red),
     tags$link(rel = "stylesheet", type = "text/css", href = "styles.css"),
-    reduced_motion_js
+    reduced_motion_js,
+    share_js
   ),
 
   # Pages ----
   nav_panel("About", aboutUI(), icon = bs_icon("info-circle")),
   nav_panel("Summary", summaryUI(), icon = bs_icon("file-text"), class = "p-0"),
-  nav_panel("Explore", exploreUI(), icon = bs_icon("map"))
+  nav_panel("Explore", exploreUI(), icon = bs_icon("map")),
+
+  # right-aligned in styles.css; nav_spacer() puts a <div> in the <ul>
+  nav_item(
+    actionButton(
+      "share",
+      "Share",
+      icon = bs_icon("share"),
+      class = "btn-outline-light btn-sm share-btn"
+    )
+  )
 
   # partner links are in the About page footer: a menu inside the navbar's
   # tab list is invalid ARIA (aria-required-children, listitem)

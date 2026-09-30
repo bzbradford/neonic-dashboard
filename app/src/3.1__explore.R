@@ -21,7 +21,7 @@ exploreUI <- function(id = "explore") {
       selectizeInput(
         ns("find"),
         "Find a place",
-        choices = c("", find_choices),
+        choices = "",
         options = list(placeholder = "County, watershed, or site")
       ),
 
@@ -273,7 +273,8 @@ exploreServer <- function(id = "explore") {
         }
       })
 
-      observe({
+      # query string for the Share button; the URL itself stays clean
+      share_query <- reactive({
         sel <- rv$sel
         params <- list(
           water = input$water,
@@ -284,19 +285,23 @@ exploreServer <- function(id = "explore") {
           sel = if (!is.null(sel)) paste0(sel$type, ":", sel$key)
         ) |>
           compact()
-        query <- paste0(
-          "?",
-          paste(
-            names(params),
-            map_chr(params, URLencode, reserved = TRUE),
-            sep = "=",
-            collapse = "&"
-          )
+        paste(
+          names(params),
+          map_chr(params, URLencode, reserved = TRUE),
+          sep = "=",
+          collapse = "&"
         )
-        updateQueryString(query, mode = "replace")
       })
 
       # Controls ----
+
+      updateSelectizeInput(
+        session = session,
+        inputId = "find",
+        choices = c("", find_choices),
+        selected = "",
+        server = TRUE
+      )
 
       observeEvent(input$recent_years, {
         updateSliderInput(session, "years", value = c(2019, year_range[2]))
@@ -552,7 +557,11 @@ exploreServer <- function(id = "explore") {
         } else {
           shape <- filter(geo_layers[[sel$type]]$shapes, key == sel$key)
           proxy |>
-            fit_bounds(as.numeric(st_bbox(shape)), animate = !reduced, padding = 40)
+            fit_bounds(
+              as.numeric(st_bbox(shape)),
+              animate = !reduced,
+              padding = 40
+            )
         }
       }
 
@@ -762,6 +771,8 @@ exploreServer <- function(id = "explore") {
             write_csv(file, na = "")
         }
       )
+
+      share_query
     }
   )
 }
