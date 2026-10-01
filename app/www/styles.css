@@ -328,6 +328,25 @@ button:focus-visible,
   color: var(--color-muted);
 }
 
+/* stats have explanatory tooltips */
+.stat {
+  cursor: help;
+}
+
+.stat-label {
+  text-decoration: underline dotted var(--color-muted);
+  text-underline-offset: 2px;
+}
+
+.stat-tip .tooltip-inner {
+  max-width: 320px;
+  text-align: left;
+}
+
+.stat-tip .tooltip-inner p:last-child {
+  margin-bottom: 0;
+}
+
 /* narrow map (small screens, or beside an open sidebar): lift the bottom
    legend above the map credits and tighten the legends */
 .map-card .card-body {

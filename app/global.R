@@ -94,6 +94,10 @@ site_status_colors <- c(
 
 no_data_color <- "#e2e5e9"
 
+# selected place outline: amber core on a dark casing, distinct from both the
+# blue (frequency) and red (concentration, exceedance) ramps
+sel_colors <- list(core = "#ffc20a", casing = brand$text)
+
 
 # Precomputed tables -----------------------------------------------------------
 

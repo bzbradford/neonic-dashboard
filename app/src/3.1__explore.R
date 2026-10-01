@@ -2,7 +2,8 @@
 
 # Map + controls + selection panel. The map is rendered once; control changes
 # swap layer data through maplibre_proxy() so the view (zoom/pan) is kept.
-# Layer ids: county-*, wshed-* (fill, line, nodata, sel), sites, site-sel.
+# Layer ids: county-*, wshed-* (fill, line, nodata, sel-casing, sel), sites,
+# site-sel-casing, site-sel.
 
 exploreUI <- function(id = "explore") {
   ns <- NS(id)
@@ -22,7 +23,17 @@ exploreUI <- function(id = "explore") {
         ns("find"),
         "Find a place",
         choices = "",
-        options = list(placeholder = "County, watershed, or site")
+        options = list(
+          placeholder = "County, watershed, or site",
+          # x button to clear the selection (shown only when one is set). An
+          # unnamed list, since Shiny appends its own a11y plugin to it
+          plugins = list(
+            list(
+              name = "clear_button",
+              options = list(title = "Clear selection")
+            )
+          )
+        )
       ),
 
       radioButtons(
@@ -146,7 +157,7 @@ exploreUI <- function(id = "explore") {
               ),
               div(
                 class = "note",
-                "Share of samples with a detection each year. Detection limits fell from 0.2–0.5 µg/L before 2015 to 0.01 µg/L from 2019, so earlier years undercount detections."
+                "Share of samples with a detection each year; hover a bar for benchmark exceedances. Detection limits fell from 0.2–0.5 µg/L before 2015 to 0.01 µg/L from 2019, so earlier years undercount detections."
               )
             ),
             nav_panel(
@@ -324,9 +335,6 @@ exploreServer <- function(id = "explore") {
         # proxy messages sent before the map exists are dropped, so the
         # initial selection (e.g. from the URL) is drawn here
         sel <- isolate(rv$sel)
-        sel_key <- \(type) {
-          if (!is.null(sel) && sel$type == type) sel$key else ""
-        }
 
         vis <- \(g) if (geo == g) "visible" else "none"
         area_layer <- function(map, g) {
@@ -365,14 +373,24 @@ exploreServer <- function(id = "explore") {
             )
         }
 
+        # selection outline: a bright core over a dark casing so it stands
+        # out on both the blue and red ramps. Highlight layers hold only the
+        # selected feature and are updated with set_source() (mapgl ANDs a
+        # set_filter() with the layer's initial filter, so filters can't be
+        # swapped)
         sel_line <- function(map, g) {
           map |>
             add_line_layer(
+              id = paste0(g, "-sel-casing"),
+              source = build_sel_layer(g, sel),
+              line_color = sel_colors$casing,
+              line_width = 3.5
+            ) |>
+            add_line_layer(
               id = paste0(g, "-sel"),
-              source = paste0(g, "-fill"),
-              line_color = brand$red,
-              line_width = 3,
-              filter = list("==", get_column("key"), sel_key(g))
+              source = paste0(g, "-sel-casing"),
+              line_color = sel_colors$core,
+              line_width = 1.5
             )
         }
 
@@ -406,14 +424,22 @@ exploreServer <- function(id = "explore") {
             tooltip = "tooltip",
             popup = "popup"
           ) |>
+          # ring around the selected site: dark edges either side of the core
+          add_circle_layer(
+            id = "site-sel-casing",
+            source = build_sel_layer("site", sel),
+            circle_radius = 9,
+            circle_color = "rgba(0,0,0,0)",
+            circle_stroke_color = sel_colors$casing,
+            circle_stroke_width = 7
+          ) |>
           add_circle_layer(
             id = "site-sel",
-            source = select(app_sites, site_key),
-            circle_radius = 11,
+            source = "site-sel-casing",
+            circle_radius = 10,
             circle_color = "rgba(0,0,0,0)",
-            circle_stroke_color = brand$red,
-            circle_stroke_width = 3,
-            filter = list("==", get_column("site_key"), sel_key("site"))
+            circle_stroke_color = sel_colors$core,
+            circle_stroke_width = 3
           ) |>
           add_navigation_control(show_compass = FALSE) |>
           add_fullscreen_control() |>
@@ -508,33 +534,29 @@ exploreServer <- function(id = "explore") {
       ## selection highlight ----
       observe({
         sel <- rv$sel
-        key_for <- \(type) {
-          if (!is.null(sel) && sel$type == type) sel$key else ""
-        }
         proxy |>
-          set_filter(
-            "county-sel",
-            list("==", get_column("key"), key_for("county"))
-          ) |>
-          set_filter(
-            "wshed-sel",
-            list("==", get_column("key"), key_for("wshed"))
-          ) |>
-          set_filter(
-            "site-sel",
-            list("==", get_column("site_key"), key_for("site"))
-          )
+          set_source("county-sel", build_sel_layer("county", sel)) |>
+          set_source("wshed-sel", build_sel_layer("wshed", sel)) |>
+          set_source("site-sel", build_sel_layer("site", sel))
       })
 
       ## map clicks ----
       observeEvent(input$map_feature_click, {
         f <- input$map_feature_click
         props <- f$properties
+        # highlight layers sit on top, so clicks on the selected place
+        # report them rather than the fill or site layer
         new_sel <- switch(
           f$layer,
-          "county-fill" = list(type = "county", key = props$key),
-          "wshed-fill" = list(type = "wshed", key = props$key),
-          "sites" = list(type = "site", key = props$site_key),
+          "county-fill" = ,
+          "county-sel" = ,
+          "county-sel-casing" = list(type = "county", key = props$key),
+          "wshed-fill" = ,
+          "wshed-sel" = ,
+          "wshed-sel-casing" = list(type = "wshed", key = props$key),
+          "sites" = ,
+          "site-sel" = ,
+          "site-sel-casing" = list(type = "site", key = props$site_key),
           NULL # basemap features are ignored
         )
         req(new_sel)
@@ -640,6 +662,7 @@ exploreServer <- function(id = "explore") {
       output$sel_stats <- renderUI({
         res <- sel_res()
         status <- sel_status()
+        f <- filters()
         if (nrow(res) == 0) {
           return(div(
             class = "note",
@@ -653,12 +676,19 @@ exploreServer <- function(id = "explore") {
           n_exceed = sum(status == "Exceeds"),
           n_indet = sum(status == "Indeterminate")
         )
-        stat <- function(value, label, sub = NULL) {
-          div(
-            class = "stat",
-            div(class = "stat-value", value),
-            div(class = "stat-label", label),
-            if (!is.null(sub)) div(class = "stat-sub", sub)
+        tips <- stat_tooltips(s, e, f, unique(as.character(res$site_type)))
+        # tooltips also open on keyboard focus (bslib makes the box focusable)
+        stat <- function(value, label, sub = NULL, tip) {
+          tooltip(
+            div(
+              class = "stat",
+              div(class = "stat-value", value),
+              div(class = "stat-label", label),
+              if (!is.null(sub)) div(class = "stat-sub", sub)
+            ),
+            tip,
+            placement = "bottom",
+            options = list(customClass = "stat-tip")
           )
         }
         div(
@@ -666,12 +696,14 @@ exploreServer <- function(id = "explore") {
           stat(
             fmt_n(s$n_samples),
             "samples",
-            paste(fmt_n(s$n_sites), if (s$n_sites == 1) "site" else "sites")
+            paste(fmt_n(s$n_sites), if (s$n_sites == 1) "site" else "sites"),
+            tips$samples
           ),
           stat(
             fmt_pct(s$det_freq, 0),
             "detected",
-            paste(fmt_n(s$n_detected), "samples")
+            paste(fmt_n(s$n_detected), "samples"),
+            tips$detected
           ),
           stat(
             if (is.na(s$median_det)) {
@@ -682,12 +714,14 @@ exploreServer <- function(id = "explore") {
             "median µg/L",
             if (!is.na(s$max_det)) {
               paste("max", fmt_conc(s$max_det, units = FALSE))
-            }
+            },
+            tips$median
           ),
           stat(
             fmt_pct(e$n_exceed / e$n, 0),
             "exceed benchmark",
-            if (e$n_indet > 0) paste(fmt_n(e$n_indet), "indeterminate")
+            if (e$n_indet > 0) paste(fmt_n(e$n_indet), "indeterminate"),
+            tips$exceed
           )
         )
       })
@@ -707,7 +741,7 @@ exploreServer <- function(id = "explore") {
           nrow(d) > 0,
           "No samples match the current filters for this selection."
         ))
-        plot_annual(d)
+        plot_annual(d, sel_status(), benchmark_short(filters()$benchmark))
       })
 
       output$table_tab_title <- renderUI({
@@ -774,5 +808,167 @@ exploreServer <- function(id = "explore") {
 
       share_query
     }
+  )
+}
+
+
+# Stat tooltips ----------------------------------------------------------------
+
+## benchmark_short ----
+# short benchmark name for chart hover text
+benchmark_short <- function(benchmark) {
+  switch(
+    benchmark,
+    primary = "primary benchmark",
+    aquatic_acute = "EPA aquatic acute benchmark",
+    aquatic_chronic = "EPA aquatic chronic benchmark",
+    proposed_es = "proposed WI ES",
+    proposed_pal = "proposed WI PAL"
+  )
+}
+
+## describe_benchmark ----
+# which benchmark the exceedance stat uses, with values for a single analyte
+describe_benchmark <- function(benchmark, analyte, types) {
+  # e.g. " (acute 11 µg/L, chronic 0.05 µg/L)"
+  values <- function(ids, names = NULL) {
+    if (analyte == "Total") {
+      return("")
+    }
+    v <- benchmarks$value[match(
+      paste(analyte, ids),
+      paste(benchmarks$analyte, benchmarks$benchmark)
+    )]
+    v <- fmt_conc(v)
+    if (!is.null(names)) {
+      v <- paste(names, v)
+    }
+    paste0(" (", paste(v, collapse = ", "), ")")
+  }
+
+  if (benchmark != "primary") {
+    lbl <- as.character(benchmarks$label[benchmarks$benchmark == benchmark][1])
+    return(paste0(lbl, values(benchmark), "."))
+  }
+
+  by_type <- c(
+    "Surface water" = paste0(
+      "Surface water uses the EPA aquatic life benchmarks for invertebrates",
+      values(c("aquatic_acute", "aquatic_chronic"), c("acute", "chronic"))
+    ),
+    "Groundwater" = paste0(
+      "Groundwater uses the proposed Wisconsin NR 140 standards",
+      values(c("proposed_es", "proposed_pal"), c("ES", "PAL"))
+    )
+  )
+  types <- intersect(names(by_type), types)
+  lower <- c("Surface water" = "chronic", "Groundwater" = "PAL")[types]
+  paste0(
+    "Primary, by water type. ",
+    paste0(by_type[types], ".", collapse = " "),
+    " A sample counts if it reaches either value, so in practice the lower one (",
+    paste(lower, collapse = " or "),
+    ") decides."
+  )
+}
+
+## stat_tooltips ----
+#' @param s summarize_detections() of the selection
+#' @param e exceedance counts: n, n_exceed, n_indet
+#' @param f current filters
+#' @param types water types present in the selection
+#' @returns list of tooltip contents for the four selection stats
+stat_tooltips <- function(s, e, f, types) {
+  total <- f$analyte == "Total"
+  analyte_txt <- if (total) "any neonicotinoid" else f$analyte
+  pct <- \(x) fmt_pct(x, if (x > 0 && x < 0.1) 1 else 0)
+
+  samples <- tagList(
+    p(sprintf(
+      "Water samples matching the current filters (water type, years%s) that were tested for %s. One sample is one collection at one site and date.",
+      if (f$wells == "all") "" else ", wells",
+      analyte_txt
+    )),
+    p(sprintf(
+      "%s %s contributed. Sites sampled more often weigh more heavily in the percentages.",
+      fmt_n(s$n_sites),
+      if (s$n_sites == 1) "site" else "sites"
+    ))
+  )
+
+  detected <- tagList(
+    p(sprintf(
+      "%s of %s samples (%s) had %s detected, at or above the lab's detection limit. %s of %s sites had at least one detection.",
+      fmt_n(s$n_detected),
+      fmt_n(s$n_samples),
+      pct(s$det_freq),
+      analyte_txt,
+      fmt_n(s$n_sites_detected),
+      fmt_n(s$n_sites)
+    )),
+    if (f$years[1] < 2019) {
+      p(
+        "A non-detect doesn't mean none was present. Detection limits fell from 0.2–0.5 µg/L before 2015 to 0.01 µg/L from 2019, so ranges that include earlier years understate detection."
+      )
+    }
+  )
+
+  median <- if (s$n_detected == 0) {
+    p("No detections, so there are no concentrations to summarize.")
+  } else {
+    tagList(
+      p(sprintf(
+        "Median of the %s detected concentrations; the highest was %s. Non-detects are left out, so this is a typical level when %s is found, not in a typical sample.",
+        fmt_n(s$n_detected),
+        fmt_conc(s$max_det),
+        analyte_txt
+      )),
+      if (total) {
+        p(
+          "A sample's concentration is the sum of all neonicotinoids detected in it."
+        )
+      }
+    )
+  }
+
+  exceed <- tagList(
+    p(sprintf(
+      "%s of all %s samples (%s) were at or above the benchmark. This is a share of all samples, including non-detects, not just of detections.",
+      fmt_n(e$n_exceed),
+      fmt_n(e$n),
+      pct(e$n_exceed / e$n)
+    )),
+    p(
+      strong("Benchmark: "),
+      describe_benchmark(f$benchmark, f$analyte, types)
+    ),
+    if (total) {
+      p(
+        "Each neonicotinoid is compared with its own benchmark; a sample counts if imidacloprid, clothianidin or thiamethoxam reaches it."
+      )
+    },
+    p(paste0(
+      "Indeterminate samples are non-detects whose detection limit was above the benchmark, so whether they exceeded is unknown. They count in the total but not as exceedances",
+      if (e$n_indet > 0) {
+        sprintf(
+          "; %s samples (%s) are indeterminate here, so the true share could be as high as %s.",
+          fmt_n(e$n_indet),
+          pct(e$n_indet / e$n),
+          pct((e$n_exceed + e$n_indet) / e$n)
+        )
+      } else {
+        ". There are none here."
+      }
+    )),
+    p(
+      "Benchmarks are screening values: the EPA aquatic life benchmarks are not regulatory limits, and the Wisconsin groundwater standards are proposed."
+    )
+  )
+
+  list(
+    samples = samples,
+    detected = detected,
+    median = median,
+    exceed = exceed
   )
 }

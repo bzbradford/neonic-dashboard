@@ -175,6 +175,19 @@ build_area_layer <- function(geo, res, status, metric) {
     select(key, name, has_data, fill, tooltip)
 }
 
+## build_sel_layer ----
+#' @param type "county", "wshed" or "site"
+#' @param sel NULL or list(type, key)
+#' @returns sf holding the selected feature if it is of this type, else empty
+build_sel_layer <- function(type, sel) {
+  k <- if (!is.null(sel) && sel$type == type) sel$key else character()
+  if (type == "site") {
+    filter(app_sites, site_key %in% k) |> select(site_key)
+  } else {
+    filter(geo_layers[[type]]$shapes, key %in% k)
+  }
+}
+
 ## build_site_layer ----
 #' @param muted smaller points when shown on top of a choropleth
 #' @returns sf of sites present in the filtered data, colored by status

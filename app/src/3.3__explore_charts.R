@@ -197,18 +197,8 @@ plot_timeseries <- function(d, bm_values = NULL) {
 # Detection frequency by year --------------------------------------------------
 
 ## annual_panel ----
-annual_panel <- function(d, show_legend = TRUE) {
-  a <- summarize_detections(d, year, analyte) |>
-    mutate(
-      text = sprintf(
-        "%s: %s of %s samples (%s)",
-        year,
-        n_detected,
-        n_samples,
-        fmt_pct(det_freq, 0)
-      )
-    )
-
+#' @param a yearly summary from plot_annual() for one water type
+annual_panel <- function(a, show_legend = TRUE) {
   p <- plot_ly()
   for (an in intersect(
     names(analyte_colors),
@@ -236,8 +226,44 @@ annual_panel <- function(d, show_legend = TRUE) {
     )
 }
 
-plot_annual <- function(d) {
-  stack_by_type(d, annual_panel) |>
+## plot_annual ----
+#' @param status benchmark status rows matching d (one benchmark)
+#' @param bm_label benchmark name for the hover text
+plot_annual <- function(d, status, bm_label) {
+  exc <- status |>
+    summarize(
+      n_exceed = sum(status == "Exceeds"),
+      n_indet = sum(status == "Indeterminate"),
+      .by = c(site_type, year, analyte)
+    )
+
+  a <- summarize_detections(d, site_type, year, analyte) |>
+    left_join(exc, join_by(site_type, year, analyte)) |>
+    mutate(
+      across(c(n_exceed, n_indet), \(x) coalesce(x, 0L)),
+      text = paste0(
+        sprintf(
+          "<b>%s</b>: %s of %s samples detected (%s)<br>%s at or above %s (%s)",
+          year,
+          fmt_n(n_detected),
+          fmt_n(n_samples),
+          fmt_pct(det_freq, 0),
+          fmt_n(n_exceed),
+          bm_label,
+          fmt_pct(n_exceed / n_samples, 0)
+        ),
+        if_else(
+          n_indet > 0,
+          sprintf(
+            "<br>%s indeterminate (not detected, limit above benchmark)",
+            fmt_n(n_indet)
+          ),
+          ""
+        )
+      )
+    )
+
+  stack_by_type(a, annual_panel) |>
     plotly_config()
 }
 
