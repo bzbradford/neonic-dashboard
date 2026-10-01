@@ -289,6 +289,22 @@ button:focus-visible,
   white-space: nowrap;
 }
 
+/* collapsed sidebar toggle floats over the map's top-left corner: keep it
+   above the map legends (mapgl z-index 1002) and give it a backing so it
+   reads against the map. Phones use bslib's own overlay stacking. */
+@media (min-width: 576px) {
+  .bslib-sidebar-layout.sidebar-collapsed>.collapse-toggle {
+    z-index: 1010;
+    background-color: #ffffff;
+    border: 1px solid var(--bs-border-color);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  }
+
+  .bslib-sidebar-layout.sidebar-collapsed>.collapse-toggle:hover {
+    background-color: var(--color-page-bg);
+  }
+}
+
 .legend-note {
   font-weight: 400;
   font-size: 0.75rem;
@@ -380,9 +396,17 @@ button:focus-visible,
   max-width: 320px;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  * {
-    transition: none !important;
-    animation: none !important;
+/* near-instant rather than none: bslib's sidebar (and Bootstrap modals and
+   collapses) wait for transitionend/animationend events, which never fire
+   without a transition, leaving the sidebar stuck empty after a toggle */
+/* @media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 1ms !important;
+    transition-delay: 0s !important;
+    animation-duration: 1ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
   }
-}
+} */

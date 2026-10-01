@@ -54,8 +54,7 @@ ui <- page_navbar(
     ),
     tags$meta(name = "theme-color", content = brand$red),
     tags$link(rel = "stylesheet", type = "text/css", href = "styles.css"),
-    reduced_motion_js,
-    share_js
+    tags$script(src = "scripts.js")
   ),
 
   # Pages ----

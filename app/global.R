@@ -23,6 +23,19 @@ if (FALSE) {
   # (run from the project root)
   source("R/build.R")
 
+  # renv for project root
+  renv::update()
+  renv::snapshot()
+
+  # build renv lockfile for the app subdirectory (run from the project root)
+  renv::snapshot(
+    project = "app",
+    library = renv::paths$library(), # the root project's library
+    lockfile = "app/renv.lock",
+    prompt = FALSE
+  )
+
+  # run the app
   shiny::devmode(TRUE)
   shiny::runApp("app")
 }
@@ -211,54 +224,6 @@ build_link <- function(text, href, ...) {
     ...
   )
 }
-
-# user's reduced-motion preference, sent to the server as input$reduced_motion
-reduced_motion_js <- tags$script(HTML(
-  "$(document).on('shiny:connected', function() {
-    var mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    Shiny.setInputValue('reduced_motion', mq.matches);
-    mq.addEventListener('change', function(e) { Shiny.setInputValue('reduced_motion', e.matches); });
-  });"
-))
-
-# share links: on Posit Connect the app runs in an iframe (whose path holds a
-# _w_<worker> segment), so the clean URL is read from and written to the top
-# window when it is reachable
-share_js <- tags$script(HTML(
-  "(function() {
-    function topWindow() {
-      try { window.top.location.href; return window.top; } catch (e) { return window; }
-    }
-    function baseUrl() {
-      var loc = topWindow().location;
-      return loc.origin + loc.pathname.replace(/_w_[0-9a-f]+\\/?$/, '');
-    }
-    $(document).on('shiny:connected', function() {
-      Shiny.addCustomMessageHandler('clear-url', function(x) {
-        var w = topWindow();
-        if (w.location.search) {
-          w.history.replaceState(w.history.state, '', baseUrl() + w.location.hash);
-        }
-      });
-      Shiny.addCustomMessageHandler('share-url', function(query) {
-        var el = document.getElementById('share_url');
-        if (!el) return;
-        el.value = baseUrl() + (query ? '?' + query : '');
-        $(el).closest('.modal').one('shown.bs.modal', function() { el.select(); });
-      });
-    });
-    $(document).on('click', '#share_copy', function() {
-      var btn = this, el = document.getElementById('share_url');
-      var done = function() { $(btn).find('span').text('Copied!'); };
-      var fallback = function() { el.select(); if (document.execCommand('copy')) done(); };
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(el.value).then(done, fallback);
-      } else {
-        fallback();
-      }
-    });
-  })();"
-))
 
 # shown at the bottom of the About page (a page_navbar footer overlaps
 # non-fillable pages)

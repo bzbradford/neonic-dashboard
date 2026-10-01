@@ -321,11 +321,9 @@ sites_table <- function(res, status, input_id) {
           type = "button",
           class = "btn btn-link btn-sm p-0 text-start site-link",
           title = "Select this site",
-          onclick = sprintf(
-            "Shiny.setInputValue('%s', '%s', {priority: 'event'})",
-            input_id,
-            df$site_key[index]
-          ),
+          # click handler in www/scripts.js
+          `data-input` = input_id,
+          `data-key` = df$site_key[index],
           value
         )
       }),

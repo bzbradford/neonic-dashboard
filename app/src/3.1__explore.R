@@ -447,6 +447,9 @@ exploreServer <- function(id = "explore") {
       })
 
       ## legends ----
+      # mapgl's default legend background is 50% white
+      legend_bg <- legend_style(background_opacity = 0.85)
+
       add_map_legends <- function(map, f, geo, metric) {
         if (geo != "sites") {
           scale <- metric_scale(metric)
@@ -460,7 +463,8 @@ exploreServer <- function(id = "explore") {
               colors = scale$colors,
               position = "bottom-left",
               add = TRUE,
-              unique_id = "legend-area"
+              unique_id = "legend-area",
+              style = legend_bg
             )
         }
         map |>
@@ -475,7 +479,8 @@ exploreServer <- function(id = "explore") {
             patch_shape = "circle",
             position = "top-left",
             add = TRUE,
-            unique_id = "legend-sites"
+            unique_id = "legend-sites",
+            style = legend_bg
           )
       }
 
