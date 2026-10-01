@@ -231,23 +231,37 @@ site_footer <- function() {
   tags$footer(
     class = "site-footer",
     div(
-      "Data: Wisconsin Department of Agriculture, Trade and Consumer Protection (DATCP).",
-      sprintf(
-        "Samples through %s · Updated %s.",
-        format(last_sample_date, "%B %Y"),
-        last_updated
-      )
+      "Data courtesy ",
+      build_link(
+        "Wisconsin DATCP",
+        "https://datcp.wi.gov/"
+      ),
+      "."
     ),
     div(
-      "Developed with ",
+      sprintf("Samples through %s.", format(last_sample_date, "%B %Y"))
+    ),
+    div(
+      "Developed in partnership with ",
       build_link("UW–Madison Extension", "https://extension.wisc.edu/"),
       ", ",
       build_link("Clean Wisconsin", "https://www.cleanwisconsin.org/"),
       ", and the ",
       build_link("River Alliance of Wisconsin", "https://wisconsinrivers.org/"),
-      ". Data from ",
-      build_link("Wisconsin DATCP", "https://datcp.wi.gov/"),
       "."
+    ),
+    div(
+      "Dashboard by ",
+      build_link(
+        "Ben Bradford",
+        "https://entomology.wisc.edu/directory/ben-bradford/"
+      ),
+      ", UW–Madison Entomology · ",
+      build_link(
+        "Source code",
+        "https://github.com/bzbradford/neonic-dashboard"
+      ),
+      sprintf(" · Last updated %s.", last_updated)
     )
   )
 }
